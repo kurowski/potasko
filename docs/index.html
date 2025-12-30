@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potasko - Your little task potato, a CalDAV todo app.</title>
+    <meta name="description" content="An offline-first CalDAV task manager for Linux with planned Android support">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Winky+Rough&family=Winky+Sans&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Winky Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #3e2723;
+            background: linear-gradient(135deg, #f5f2e8 0%, #e8dcc8 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Winky Rough', 'Winky Sans', cursive;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .logo {
+            width: 180px;
+            height: 180px;
+            filter: drop-shadow(8px 16px 16px rgba(0.3, 0.2, 0, 0.3));
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #2d1f1a;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .tagline {
+            font-size: 1.5rem;
+            color: #5d4e37;
+            margin-bottom: 2rem;
+        }
+
+        .hero {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #5d4e37;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .hero p:last-child,
+        .tagline {
+            margin-bottom: 0;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .feature-card h3 {
+            color: #2d1f1a;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 0.5rem 0;
+            color: #5d4e37;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .feature-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #8b7355;
+            font-weight: bold;
+        }
+
+        .feature-card li.planned {
+            color: #90a4ae;
+            opacity: 0.7;
+        }
+
+        .feature-card li.planned:before {
+            content: "○";
+            color: #b0bec5;
+        }
+
+        .tech-stack {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .tech-stack h2 {
+            color: #2d1f1a;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #8b7355 0%, #a68968 100%);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .cta {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .cta a {
+            display: inline-block;
+            background: linear-gradient(135deg, #8b7355 0%, #a68968 100%);
+            color: white;
+            padding: 1rem 3rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cta a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 115, 85, 0.4);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: #5d4e37;
+        }
+
+        footer a {
+            color: #8b7355;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .tagline {
+                font-size: 1.2rem;
+            }
+
+            .hero {
+                padding: 2rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .logo {
+                width: 140px;
+                height: 140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="logo.png" alt="Potasko Logo" class="logo">
+            <h1>Potasko</h1>
+            <p class="tagline">Your little task potato, a CalDAV todo app.</p>
+        </header>
+
+        <div class="hero">
+            <p>
+                A simple task manager built with Tauri that syncs with CalDAV servers.
+            </p>
+            <p>
+                Built for Linux, coming soon to Android.
+            </p>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>Task Management</h3>
+                <ul>
+                    <li>Task completion tracking</li>
+                    <li>Due dates and priorities</li>
+                    <li class="planned">Recurring tasks (RRULE)</li>
+                    <li>Multiple task lists</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>CalDAV Sync</h3>
+                <ul>
+                    <li>Works with Nextcloud, Radicale, Baikal</li>
+                    <li class="planned">Secure credential storage</li>
+                    <li class="planned">Automatic conflict resolution</li>
+                    <li class="planned">Background synchronization</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>Offline-First</h3>
+                <ul>
+                    <li>Local SQLite storage</li>
+                    <li>Work without internet</li>
+                    <li class="planned">Sync when connected</li>
+                    <li class="planned">Change queue with retry</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="tech-stack">
+            <h2>Built With</h2>
+            <div class="tech-badges">
+                <span class="badge">Tauri 2.0</span>
+                <span class="badge">Rust</span>
+                <span class="badge">SvelteKit</span>
+                <span class="badge">SQLite</span>
+                <span class="badge">CalDAV</span>
+            </div>
+        </div>
+
+        <div class="cta">
+            <a href="https://github.com/kurowski/potasko" target="_blank">View on GitHub</a>
+        </div>
+
+        <footer>
+            <p>Built with ❤️ in Bratt, VT and Phila, PA</p>
+        </footer>
+    </div>
+</body>
+</html>
