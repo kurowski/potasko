@@ -45,7 +45,9 @@
     {#if listStore.selectedView}
       <TaskListView onEditTask={handleEditTask} />
       {#if canAddTasks}
-        <TaskForm task={editingTask} onClose={handleCloseEdit} />
+        {#key editingTask?.id}
+          <TaskForm task={editingTask} onClose={handleCloseEdit} />
+        {/key}
       {/if}
     {:else if listStore.loading}
       <div class="loading-state">Loading...</div>
