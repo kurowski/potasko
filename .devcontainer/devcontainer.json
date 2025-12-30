@@ -1,0 +1,61 @@
+{
+  "name": "Potasko",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "runArgs": [
+    "--security-opt", "label=disable"
+  ],
+
+  "containerEnv": {
+    "WAYLAND_DISPLAY": "wayland-0",
+    "XDG_RUNTIME_DIR": "/tmp"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tauri-apps.tauri-vscode",
+        "vadimcn.vscode-lldb",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "svelte.svelte-vscode"
+      ],
+      "settings": {
+        "rust-analyzer.checkOnSave.command": "clippy",
+        "editor.formatOnSave": true,
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "ANDROID_HOME": "/opt/android-sdk",
+    "ANDROID_SDK_ROOT": "/opt/android-sdk"
+  },
+
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/home/vscode/.android,type=bind,consistency=cached",
+    "source=${localEnv:XDG_RUNTIME_DIR}/wayland-0,target=/tmp/wayland-0,type=bind"
+  ],
+
+  "forwardPorts": [1420, 8080, 3000],
+  
+  "portsAttributes": {
+    "1420": {
+      "label": "Tauri Dev Server",
+      "onAutoForward": "notify"
+    }
+  }
+}
