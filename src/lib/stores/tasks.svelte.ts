@@ -1,5 +1,6 @@
 // Tasks store using Svelte 5 runes
 import type { Task, CreateTask, UpdateTask } from '$lib/types';
+import type { SpecialView } from '$lib/stores/lists.svelte';
 import * as api from '$lib/api';
 
 // Reactive state
@@ -8,11 +9,28 @@ let loading = $state(false);
 let error = $state<string | null>(null);
 
 // Actions
-async function load(listId: number) {
+async function loadList(listId: number) {
   loading = true;
   error = null;
   try {
     tasks = await api.getTasks(listId);
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+    tasks = [];
+  } finally {
+    loading = false;
+  }
+}
+
+async function loadSpecial(view: SpecialView) {
+  loading = true;
+  error = null;
+  try {
+    if (view === 'today') {
+      tasks = await api.getTasksToday();
+    } else if (view === 'overdue') {
+      tasks = await api.getTasksOverdue();
+    }
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
     tasks = [];
@@ -77,7 +95,8 @@ export const taskStore = {
   get tasks() { return tasks; },
   get loading() { return loading; },
   get error() { return error; },
-  load,
+  loadList,
+  loadSpecial,
   create,
   update,
   toggle,

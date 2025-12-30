@@ -27,6 +27,33 @@
 
 <aside class="sidebar">
   <div class="sidebar-header">
+    <h2>Views</h2>
+  </div>
+
+  <nav class="special-nav">
+    <button
+      class="special-item"
+      class:selected={listStore.selectedSpecialView === 'today'}
+      onclick={() => listStore.selectSpecial('today')}
+    >
+      <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+      </svg>
+      <span class="list-name">Today</span>
+    </button>
+    <button
+      class="special-item"
+      class:selected={listStore.selectedSpecialView === 'overdue'}
+      onclick={() => listStore.selectSpecial('overdue')}
+    >
+      <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+      <span class="list-name">Overdue</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-header">
     <h2>Lists</h2>
     <button class="icon-btn" onclick={() => isAdding = true} title="Add list">+</button>
   </div>
@@ -139,6 +166,44 @@
 
   .add-list-form button[type="button"] {
     background: transparent;
+  }
+
+  .special-nav {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .special-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    text-align: left;
+    font-size: 0.875rem;
+  }
+
+  .special-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .special-item.selected {
+    background: var(--bg-selected);
+  }
+
+  .special-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+  }
+
+  .special-item.selected .special-icon {
+    color: var(--text-primary);
   }
 
   .list-nav {

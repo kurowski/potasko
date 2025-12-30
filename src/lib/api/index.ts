@@ -56,3 +56,11 @@ export async function deleteTask(id: number): Promise<void> {
 export async function toggleTaskCompletion(id: number): Promise<Task> {
   return invoke('toggle_task_completion', { id });
 }
+
+export async function getTasksToday(): Promise<Task[]> {
+  return invoke('get_tasks_today');
+}
+
+export async function getTasksOverdue(): Promise<Task[]> {
+  return invoke('get_tasks_overdue');
+}

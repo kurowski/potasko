@@ -13,11 +13,25 @@
   // Separate completed and incomplete tasks
   const incompleteTasks = $derived(taskStore.tasks.filter(t => !t.completed));
   const completedTasks = $derived(taskStore.tasks.filter(t => t.completed));
+
+  // Get the title based on view type
+  const viewTitle = $derived(() => {
+    const view = listStore.selectedView;
+    if (view?.type === 'list') {
+      return listStore.selectedList?.name ?? 'Tasks';
+    } else if (view?.type === 'special') {
+      return view.view === 'today' ? 'Today' : 'Overdue';
+    }
+    return 'Tasks';
+  });
+
+  // Hide completed section only for Overdue view (Today shows completed tasks)
+  const hideCompletedSection = $derived(listStore.selectedSpecialView === 'overdue');
 </script>
 
 <div class="task-list-view">
   <header class="list-header">
-    <h1>{listStore.selectedList?.name ?? 'Tasks'}</h1>
+    <h1>{viewTitle()}</h1>
     <span class="task-count">{incompleteTasks.length} tasks</span>
   </header>
 
@@ -39,7 +53,7 @@
           {/each}
         </div>
 
-        {#if completedTasks.length > 0}
+        {#if !hideCompletedSection && completedTasks.length > 0}
           <details class="completed-section">
             <summary>Completed ({completedTasks.length})</summary>
             <div class="task-section">

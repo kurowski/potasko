@@ -12,6 +12,7 @@ use commands::{
     get_lists, get_list, create_list, update_list, delete_list,
     // Task commands
     get_tasks, get_task, create_task, update_task, delete_task, toggle_task_completion,
+    get_tasks_today, get_tasks_overdue,
 };
 
 use sqlx::SqlitePool;
@@ -57,6 +58,8 @@ pub fn run() {
             update_task,
             delete_task,
             toggle_task_completion,
+            get_tasks_today,
+            get_tasks_overdue,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

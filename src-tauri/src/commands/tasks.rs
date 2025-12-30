@@ -218,6 +218,85 @@ pub async fn delete_task(id: i64, db: State<'_, DbState>) -> Result<(), String> 
     Ok(())
 }
 
+/// Get all tasks due today (across all lists), including completed ones.
+#[tauri::command]
+pub async fn get_tasks_today(db: State<'_, DbState>) -> Result<Vec<Task>, String> {
+    let rows = sqlx::query_as!(
+        TaskRow,
+        r#"
+        SELECT
+            id as "id!",
+            list_id as "list_id!",
+            uid as "uid!",
+            title as "title!",
+            description,
+            due_date,
+            priority,
+            completed as "completed!",
+            completed_at,
+            rrule,
+            caldav_href,
+            caldav_etag,
+            raw_icalendar,
+            local_version as "local_version!",
+            synced_version as "synced_version!",
+            sync_status as "sync_status!",
+            created_at as "created_at!",
+            updated_at as "updated_at!"
+        FROM tasks
+        WHERE sync_status != 'deleted'
+          AND due_date IS NOT NULL
+          AND date(due_date) = date('now')
+        ORDER BY completed ASC, due_date ASC, priority ASC NULLS LAST, created_at ASC
+        "#
+    )
+    .fetch_all(db.0.as_ref())
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(rows.into_iter().map(Task::from).collect())
+}
+
+/// Get all overdue tasks (across all lists).
+#[tauri::command]
+pub async fn get_tasks_overdue(db: State<'_, DbState>) -> Result<Vec<Task>, String> {
+    let rows = sqlx::query_as!(
+        TaskRow,
+        r#"
+        SELECT
+            id as "id!",
+            list_id as "list_id!",
+            uid as "uid!",
+            title as "title!",
+            description,
+            due_date,
+            priority,
+            completed as "completed!",
+            completed_at,
+            rrule,
+            caldav_href,
+            caldav_etag,
+            raw_icalendar,
+            local_version as "local_version!",
+            synced_version as "synced_version!",
+            sync_status as "sync_status!",
+            created_at as "created_at!",
+            updated_at as "updated_at!"
+        FROM tasks
+        WHERE sync_status != 'deleted'
+          AND completed = 0
+          AND due_date IS NOT NULL
+          AND date(due_date) < date('now')
+        ORDER BY due_date ASC, priority ASC NULLS LAST, created_at ASC
+        "#
+    )
+    .fetch_all(db.0.as_ref())
+    .await
+    .map_err(|e| e.to_string())?;
+
+    Ok(rows.into_iter().map(Task::from).collect())
+}
+
 // --- Row type for sqlx mapping ---
 
 /// Intermediate type matching database columns exactly.

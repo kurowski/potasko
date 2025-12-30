@@ -14,15 +14,20 @@
     listStore.load();
   });
 
-  // Load tasks when selected list changes
+  // Load tasks when selected view changes
   $effect(() => {
-    const listId = listStore.selectedListId;
-    if (listId) {
-      taskStore.load(listId);
+    const view = listStore.selectedView;
+    if (view?.type === 'list') {
+      taskStore.loadList(view.id);
+    } else if (view?.type === 'special') {
+      taskStore.loadSpecial(view.view);
     } else {
       taskStore.clear();
     }
   });
+
+  // Determine if we can add tasks (only in list view)
+  const canAddTasks = $derived(listStore.selectedView?.type === 'list');
 
   function handleEditTask(task: Task) {
     editingTask = task;
@@ -37,9 +42,11 @@
   <Sidebar />
 
   <main class="main-content">
-    {#if listStore.selectedListId}
+    {#if listStore.selectedView}
       <TaskListView onEditTask={handleEditTask} />
-      <TaskForm task={editingTask} onClose={handleCloseEdit} />
+      {#if canAddTasks}
+        <TaskForm task={editingTask} onClose={handleCloseEdit} />
+      {/if}
     {:else if listStore.loading}
       <div class="loading-state">Loading...</div>
     {:else}
