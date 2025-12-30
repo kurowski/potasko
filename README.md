@@ -30,6 +30,7 @@ An offline-first CalDAV task manager built with Tauri 2.0, Rust, and SvelteKit. 
 ## Getting Started
 
 ### Prerequisites
+
 ```bash
 # Rust toolchain
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -39,6 +40,7 @@ npm install -g pnpm
 ```
 
 ### Development Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/kurowski/potasko.git
@@ -88,6 +90,7 @@ potasko/
 ## Implementation Status
 
 ### Implemented
+
 - Local task storage (SQLite)
 - Basic task CRUD operations
 - Multiple task lists
@@ -95,11 +98,13 @@ potasko/
 - Due dates and priorities
 
 ### In Progress
+
 - CalDAV client (RFC 4791)
 - Server discovery and authentication
 - iCalendar (RFC 5545) parsing for VTODO
 
 ### Planned
+
 - Recurring tasks (RRULE support)
 - Conflict resolution for offline changes
 - Background sync service
@@ -122,13 +127,14 @@ async fn get_tasks(list_id: String) -> Result<Vec<Task>, String>
 
 ```typescript
 // Invoke Rust commands from SvelteKit
-import { invoke } from '@tauri-apps/api/core';
-const tasks = await invoke('get_tasks', { listId: 'default' });
+import { invoke } from "@tauri-apps/api/core";
+const tasks = await invoke("get_tasks", { listId: "default" });
 ```
 
 ### CalDAV Testing
 
 Use test servers for development:
+
 - **Radicale** - Lightweight CalDAV server
 - **Baikal** - Self-hosted alternative
 - **Nextcloud** - Full-featured groupware
@@ -136,6 +142,7 @@ Use test servers for development:
 ## Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + Extensions:
+
 - [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode)
 - [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
 - [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
@@ -146,9 +153,3 @@ Use test servers for development:
 - **CalDAV Spec**: [RFC 4791](https://www.rfc-editor.org/rfc/rfc4791)
 - **iCalendar Spec**: [RFC 5545](https://www.rfc-editor.org/rfc/rfc5545)
 - **Tauri Docs**: [tauri.app](https://tauri.app)
-
----
-
-<p align="center">
-  Built with ❤️ in Bratt, VT and Phila, PA
-</p>

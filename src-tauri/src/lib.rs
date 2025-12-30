@@ -1,4 +1,10 @@
 mod db;
+mod models;
+
+pub use models::{
+    Task, CreateTask, UpdateTask, SyncStatus,
+    TaskList, CreateTaskList, UpdateTaskList,
+};
 
 use sqlx::SqlitePool;
 use std::sync::Arc;
