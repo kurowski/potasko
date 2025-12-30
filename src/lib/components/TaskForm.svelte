@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Task } from '$lib/types';
-  import { taskStore } from '$lib/stores/tasks.svelte';
-  import { listStore } from '$lib/stores/lists.svelte';
+  import { listStore } from "$lib/stores/lists.svelte";
+  import { taskStore } from "$lib/stores/tasks.svelte";
+  import type { Task } from "$lib/types";
 
   interface Props {
     task?: Task | null;
@@ -10,14 +10,31 @@
 
   let { task = null, onClose }: Props = $props();
 
+  // Recurrence options (RRULE frequency values)
+  const RECURRENCE_OPTIONS = [
+    { value: "", label: "None" },
+    { value: "FREQ=DAILY", label: "Daily" },
+    { value: "FREQ=WEEKLY", label: "Weekly" },
+    { value: "FREQ=MONTHLY", label: "Monthly" },
+    { value: "FREQ=YEARLY", label: "Yearly" },
+  ];
+
   // Form state
-  let title = $state(task?.title ?? '');
-  let description = $state(task?.description ?? '');
-  let dueDate = $state(task?.due_date ? task.due_date.split('T')[0] : '');
-  let priority = $state<string>(task?.priority?.toString() ?? '');
+  let title = $state(task?.title ?? "");
+  let description = $state(task?.description ?? "");
+  let dueDate = $state(task?.due_date ? task.due_date.split("T")[0] : "");
+  let priority = $state<string>(task?.priority?.toString() ?? "");
+  let rrule = $state(task?.rrule ?? "");
   let saving = $state(false);
 
   const isEditing = $derived(task !== null);
+
+  // Clear recurrence if due date is removed (recurrence requires a due date)
+  $effect(() => {
+    if (!dueDate && rrule) {
+      rrule = "";
+    }
+  });
 
   async function handleSubmit(e: Event) {
     e.preventDefault();
@@ -30,6 +47,7 @@
         description: description.trim() || null,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
         priority: priority ? parseInt(priority) : null,
+        rrule: rrule || null,
       };
 
       if (isEditing && task) {
@@ -42,10 +60,11 @@
       }
 
       // Reset form
-      title = '';
-      description = '';
-      dueDate = '';
-      priority = '';
+      title = "";
+      description = "";
+      dueDate = "";
+      priority = "";
+      rrule = "";
       onClose?.();
     } catch {
       // Error handled by store
@@ -55,7 +74,7 @@
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       onClose?.();
     }
   }
@@ -86,6 +105,19 @@
     </label>
 
     <label class="form-field">
+      <span>Repeat</span>
+      <select
+        bind:value={rrule}
+        disabled={saving || !dueDate}
+        title={!dueDate ? "Set a due date first" : ""}
+      >
+        {#each RECURRENCE_OPTIONS as opt}
+          <option value={opt.value}>{opt.label}</option>
+        {/each}
+      </select>
+    </label>
+
+    <label class="form-field">
       <span>Priority</span>
       <div class="priority-select-wrapper">
         <select bind:value={priority} disabled={saving} class="priority-select">
@@ -95,7 +127,13 @@
           <option value="9">Low</option>
         </select>
         {#if priority}
-          <span class="priority-indicator priority-{priority === '1' ? 'high' : priority === '5' ? 'medium' : 'low'}"></span>
+          <span
+            class="priority-indicator priority-{priority === '1'
+              ? 'high'
+              : priority === '5'
+                ? 'medium'
+                : 'low'}"
+          ></span>
         {/if}
       </div>
     </label>
@@ -106,7 +144,7 @@
       <button type="button" onclick={onClose} disabled={saving}>Cancel</button>
     {/if}
     <button type="submit" class="primary" disabled={!title.trim() || saving}>
-      {saving ? 'Saving...' : isEditing ? 'Save' : 'Add Task'}
+      {saving ? "Saving..." : isEditing ? "Save" : "Add Task"}
     </button>
   </div>
 </form>

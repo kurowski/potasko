@@ -8,8 +8,14 @@ let tasks = $state<Task[]>([]);
 let loading = $state(false);
 let error = $state<string | null>(null);
 
+// Track current view for reload capability
+let currentListId = $state<number | null>(null);
+let currentSpecialView = $state<SpecialView | null>(null);
+
 // Actions
 async function loadList(listId: number) {
+  currentListId = listId;
+  currentSpecialView = null;
   loading = true;
   error = null;
   try {
@@ -23,6 +29,8 @@ async function loadList(listId: number) {
 }
 
 async function loadSpecial(view: SpecialView) {
+  currentListId = null;
+  currentSpecialView = view;
   loading = true;
   error = null;
   try {
@@ -36,6 +44,15 @@ async function loadSpecial(view: SpecialView) {
     tasks = [];
   } finally {
     loading = false;
+  }
+}
+
+// Reload the current view (used after completing recurring tasks)
+async function reload() {
+  if (currentListId !== null) {
+    await loadList(currentListId);
+  } else if (currentSpecialView !== null) {
+    await loadSpecial(currentSpecialView);
   }
 }
 
@@ -66,8 +83,18 @@ async function update(id: number, data: UpdateTask) {
 async function toggle(id: number) {
   error = null;
   try {
+    // Find the task to check if it's recurring
+    const task = tasks.find(t => t.id === id);
+    const isRecurring = task?.rrule && task?.due_date && !task?.completed;
+
     const updated = await api.toggleTaskCompletion(id);
     tasks = tasks.map(t => t.id === id ? updated : t);
+
+    // If we just completed a recurring task, reload to get the new occurrence
+    if (isRecurring && updated.completed) {
+      await reload();
+    }
+
     return updated;
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
@@ -97,6 +124,7 @@ export const taskStore = {
   get error() { return error; },
   loadList,
   loadSpecial,
+  reload,
   create,
   update,
   toggle,

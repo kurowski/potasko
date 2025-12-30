@@ -156,6 +156,7 @@ pub async fn update_task(
 }
 
 /// Toggle task completion status.
+/// For recurring tasks, completing creates the next occurrence.
 #[tauri::command]
 pub async fn toggle_task_completion(id: i64, db: State<'_, DbState>) -> Result<Task, String> {
     let existing = get_task(id, db.clone()).await?;
@@ -165,6 +166,7 @@ pub async fn toggle_task_completion(id: i64, db: State<'_, DbState>) -> Result<T
     let completed_at: Option<String> = if completed { Some(now.clone()) } else { None };
     let new_version = existing.local_version + 1;
 
+    // Update the current task
     sqlx::query!(
         r#"
         UPDATE tasks
@@ -181,7 +183,86 @@ pub async fn toggle_task_completion(id: i64, db: State<'_, DbState>) -> Result<T
     .await
     .map_err(|e| e.to_string())?;
 
+    // If completing a recurring task with a due date, create the next occurrence
+    if completed && existing.rrule.is_some() && existing.due_date.is_some() {
+        if let Some(next_due) = calculate_next_due_date(&existing.due_date.unwrap(), existing.rrule.as_ref().unwrap()) {
+            let uid = Uuid::new_v4().to_string();
+            let next_due_str = next_due.to_rfc3339();
+
+            sqlx::query!(
+                r#"
+                INSERT INTO tasks (list_id, uid, title, description, due_date, priority, rrule,
+                                  completed, local_version, synced_version, sync_status,
+                                  created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 0, 'pending', ?, ?)
+                "#,
+                existing.list_id,
+                uid,
+                existing.title,
+                existing.description,
+                next_due_str,
+                existing.priority,
+                existing.rrule,
+                now,
+                now
+            )
+            .execute(db.0.as_ref())
+            .await
+            .map_err(|e| e.to_string())?;
+        }
+    }
+
     get_task(id, db).await
+}
+
+/// Calculate the next due date based on RRULE frequency.
+fn calculate_next_due_date(current_due: &chrono::DateTime<Utc>, rrule: &str) -> Option<chrono::DateTime<Utc>> {
+    use chrono::{Duration, Datelike};
+
+    if rrule.contains("FREQ=DAILY") {
+        Some(*current_due + Duration::days(1))
+    } else if rrule.contains("FREQ=WEEKLY") {
+        Some(*current_due + Duration::weeks(1))
+    } else if rrule.contains("FREQ=MONTHLY") {
+        // Add one month (handle month boundaries)
+        let year = current_due.year();
+        let month = current_due.month();
+        let day = current_due.day();
+
+        let (new_year, new_month) = if month == 12 {
+            (year + 1, 1)
+        } else {
+            (year, month + 1)
+        };
+
+        // Handle days that don't exist in the target month (e.g., Jan 31 -> Feb 28)
+        let days_in_new_month = days_in_month(new_year, new_month);
+        let new_day = day.min(days_in_new_month);
+
+        current_due.with_year(new_year)
+            .and_then(|d| d.with_month(new_month))
+            .and_then(|d| d.with_day(new_day))
+    } else if rrule.contains("FREQ=YEARLY") {
+        current_due.with_year(current_due.year() + 1)
+    } else {
+        None
+    }
+}
+
+/// Get the number of days in a month.
+fn days_in_month(year: i32, month: u32) -> u32 {
+    use chrono::{NaiveDate, Datelike};
+
+    let (next_year, next_month) = if month == 12 {
+        (year + 1, 1)
+    } else {
+        (year, month + 1)
+    };
+
+    NaiveDate::from_ymd_opt(next_year, next_month, 1)
+        .and_then(|d| d.pred_opt())
+        .map(|d| d.day())
+        .unwrap_or(28)
 }
 
 /// Delete a task (marks as deleted for sync, or hard-deletes if never synced).
