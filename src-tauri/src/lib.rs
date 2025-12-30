@@ -1,3 +1,4 @@
+mod commands;
 mod db;
 mod models;
 
@@ -6,18 +7,19 @@ pub use models::{
     TaskList, CreateTaskList, UpdateTaskList,
 };
 
+use commands::{
+    // List commands
+    get_lists, get_list, create_list, update_list, delete_list,
+    // Task commands
+    get_tasks, get_task, create_task, update_task, delete_task, toggle_task_completion,
+};
+
 use sqlx::SqlitePool;
 use std::sync::Arc;
 use tauri::Manager;
 
 /// Database pool wrapper for Tauri state.
 pub struct DbState(pub Arc<SqlitePool>);
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -41,7 +43,21 @@ pub fn run() {
             println!("Database initialized successfully");
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![
+            // List commands
+            get_lists,
+            get_list,
+            create_list,
+            update_list,
+            delete_list,
+            // Task commands
+            get_tasks,
+            get_task,
+            create_task,
+            update_task,
+            delete_task,
+            toggle_task_completion,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

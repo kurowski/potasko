@@ -1,6 +1,3 @@
-pub mod migrations;
-pub mod schema;
-
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
 use std::path::Path;
 
@@ -23,6 +20,9 @@ pub async fn create_pool(db_path: &Path) -> Result<SqlitePool, sqlx::Error> {
 /// Initializes the database: creates connection and runs migrations.
 pub async fn init(db_path: &Path) -> Result<SqlitePool, sqlx::Error> {
     let pool = create_pool(db_path).await?;
-    migrations::run(&pool).await?;
+
+    // Run migrations embedded at compile time from migrations/ folder
+    sqlx::migrate!().run(&pool).await?;
+
     Ok(pool)
 }

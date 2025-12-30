@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n            UPDATE tasks\n            SET sync_status = 'deleted', local_version = ?, updated_at = ?\n            WHERE id = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "2e4b1c1d8574ee915d51e3d449edea3c46e8626fa4dc8d7f46cac0fe0ed53578"
+}
