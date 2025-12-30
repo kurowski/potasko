@@ -87,12 +87,17 @@
 
     <label class="form-field">
       <span>Priority</span>
-      <select bind:value={priority} disabled={saving}>
-        <option value="">None</option>
-        <option value="1">High (1)</option>
-        <option value="5">Medium (5)</option>
-        <option value="9">Low (9)</option>
-      </select>
+      <div class="priority-select-wrapper">
+        <select bind:value={priority} disabled={saving} class="priority-select">
+          <option value="">None</option>
+          <option value="1">High</option>
+          <option value="5">Medium</option>
+          <option value="9">Low</option>
+        </select>
+        {#if priority}
+          <span class="priority-indicator priority-{priority === '1' ? 'high' : priority === '5' ? 'medium' : 'low'}"></span>
+        {/if}
+      </div>
     </label>
   </div>
 
@@ -168,6 +173,38 @@
     border-radius: 4px;
     font-size: 0.875rem;
     background: var(--bg-primary);
+  }
+
+  .priority-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .priority-select {
+    flex: 1;
+    padding-right: 2rem;
+  }
+
+  .priority-indicator {
+    position: absolute;
+    right: 1.75rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .priority-indicator.priority-high {
+    background: var(--priority-high-text);
+  }
+
+  .priority-indicator.priority-medium {
+    background: var(--priority-medium-text);
+  }
+
+  .priority-indicator.priority-low {
+    background: var(--priority-low-text);
   }
 
   .form-actions {

@@ -170,18 +170,18 @@
   }
 
   .priority-high {
-    background: #fee2e2;
-    color: #dc2626;
+    background: var(--priority-high-bg);
+    color: var(--priority-high-text);
   }
 
   .priority-medium {
-    background: #fef3c7;
-    color: #d97706;
+    background: var(--priority-medium-bg);
+    color: var(--priority-medium-text);
   }
 
   .priority-low {
-    background: #dbeafe;
-    color: #2563eb;
+    background: var(--priority-low-bg);
+    color: var(--priority-low-text);
   }
 
   .delete-btn {

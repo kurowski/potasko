@@ -12,6 +12,14 @@
   --accent-color: #3b82f6;
   --error-color: #dc2626;
 
+  /* Priority colors - Light mode */
+  --priority-high-bg: #fee2e2;
+  --priority-high-text: #dc2626;
+  --priority-medium-bg: #fef3c7;
+  --priority-medium-text: #d97706;
+  --priority-low-bg: #dbeafe;
+  --priority-low-text: #2563eb;
+
   /* Typography */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
   font-size: 16px;
@@ -38,6 +46,14 @@
     --border-color: #374151;
     --accent-color: #60a5fa;
     --error-color: #f87171;
+
+    /* Priority colors - Dark mode */
+    --priority-high-bg: #7f1d1d;
+    --priority-high-text: #fca5a5;
+    --priority-medium-bg: #78350f;
+    --priority-medium-text: #fcd34d;
+    --priority-low-bg: #1e3a5f;
+    --priority-low-text: #93c5fd;
   }
 }
 
