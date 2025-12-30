@@ -1,17 +1,57 @@
 <script lang="ts">
+  import type { TaskList } from '$lib/types';
   import { listStore } from '$lib/stores/lists.svelte';
 
+  // Predefined color palette
+  const COLORS = [
+    '#6b7280', // gray
+    '#ef4444', // red
+    '#f97316', // orange
+    '#eab308', // yellow
+    '#22c55e', // green
+    '#14b8a6', // teal
+    '#3b82f6', // blue
+    '#8b5cf6', // purple
+    '#ec4899', // pink
+  ];
+
+  // Add list state
   let newListName = $state('');
+  let newListColor = $state(COLORS[0]);
   let isAdding = $state(false);
+
+  // Edit list state
+  let editingList = $state<TaskList | null>(null);
+  let editName = $state('');
+  let editColor = $state('');
 
   async function handleAddList(e: Event) {
     e.preventDefault();
     if (!newListName.trim()) return;
 
     try {
-      await listStore.create({ name: newListName.trim() });
+      await listStore.create({ name: newListName.trim(), color: newListColor });
       newListName = '';
+      newListColor = COLORS[0];
       isAdding = false;
+    } catch {
+      // Error is handled by store
+    }
+  }
+
+  function startEdit(list: TaskList) {
+    editingList = list;
+    editName = list.name;
+    editColor = list.color ?? COLORS[0];
+  }
+
+  async function handleEditList(e: Event) {
+    e.preventDefault();
+    if (!editingList || !editName.trim()) return;
+
+    try {
+      await listStore.update(editingList.id, { name: editName.trim(), color: editColor });
+      editingList = null;
     } catch {
       // Error is handled by store
     }
@@ -21,6 +61,8 @@
     if (e.key === 'Escape') {
       isAdding = false;
       newListName = '';
+      newListColor = COLORS[0];
+      editingList = null;
     }
   }
 </script>
@@ -59,29 +101,79 @@
   </div>
 
   {#if isAdding}
-    <form class="add-list-form" onsubmit={handleAddList}>
+    <form class="list-form" onsubmit={handleAddList} onkeydown={handleKeydown}>
       <input
         type="text"
         bind:value={newListName}
         placeholder="List name..."
-        onkeydown={handleKeydown}
         autofocus
       />
-      <button type="submit" disabled={!newListName.trim()}>Add</button>
-      <button type="button" onclick={() => { isAdding = false; newListName = ''; }}>Cancel</button>
+      <div class="color-picker">
+        {#each COLORS as color}
+          <button
+            type="button"
+            class="color-option"
+            class:selected={newListColor === color}
+            style:background-color={color}
+            onclick={() => newListColor = color}
+            title={color}
+          ></button>
+        {/each}
+      </div>
+      <div class="form-buttons">
+        <button type="submit" class="primary" disabled={!newListName.trim()}>Add</button>
+        <button type="button" onclick={() => { isAdding = false; newListName = ''; newListColor = COLORS[0]; }}>Cancel</button>
+      </div>
     </form>
   {/if}
 
   <nav class="list-nav">
     {#each listStore.lists as list (list.id)}
-      <button
-        class="list-item"
-        class:selected={list.id === listStore.selectedListId}
-        onclick={() => listStore.select(list.id)}
-      >
-        <span class="list-color" style:background-color={list.color ?? '#6b7280'}></span>
-        <span class="list-name">{list.name}</span>
-      </button>
+      {#if editingList?.id === list.id}
+        <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
+          <input
+            type="text"
+            bind:value={editName}
+            autofocus
+          />
+          <div class="color-picker">
+            {#each COLORS as color}
+              <button
+                type="button"
+                class="color-option"
+                class:selected={editColor === color}
+                style:background-color={color}
+                onclick={() => editColor = color}
+                title={color}
+              ></button>
+            {/each}
+          </div>
+          <div class="form-buttons">
+            <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
+            <button type="button" onclick={() => editingList = null}>Cancel</button>
+          </div>
+        </form>
+      {:else}
+        <div
+          class="list-item"
+          class:selected={list.id === listStore.selectedListId}
+        >
+          <button
+            type="button"
+            class="list-color-btn"
+            style:background-color={list.color ?? '#6b7280'}
+            onclick={() => startEdit(list)}
+            title="Edit list"
+          ></button>
+          <button
+            type="button"
+            class="list-name-btn"
+            onclick={() => listStore.select(list.id)}
+          >
+            {list.name}
+          </button>
+        </div>
+      {/if}
     {/each}
   </nav>
 
@@ -131,7 +223,7 @@
     background: var(--bg-hover);
   }
 
-  .add-list-form {
+  .list-form {
     padding: 0.5rem 1rem;
     display: flex;
     flex-direction: column;
@@ -139,14 +231,51 @@
     border-bottom: 1px solid var(--border-color);
   }
 
-  .add-list-form input {
+  .list-form.inline {
+    padding: 0.5rem;
+    border-bottom: none;
+    background: var(--bg-hover);
+    border-radius: 6px;
+    margin-bottom: 0.25rem;
+  }
+
+  .list-form input {
     padding: 0.5rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 0.875rem;
+    background: var(--bg-primary);
   }
 
-  .add-list-form button {
+  .color-picker {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  .color-option {
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .color-option:hover {
+    transform: scale(1.1);
+  }
+
+  .color-option.selected {
+    border-color: var(--text-primary);
+  }
+
+  .form-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .form-buttons button {
     padding: 0.375rem 0.75rem;
     border: none;
     border-radius: 4px;
@@ -154,17 +283,17 @@
     font-size: 0.875rem;
   }
 
-  .add-list-form button[type="submit"] {
+  .form-buttons button.primary {
     background: var(--accent-color);
     color: white;
   }
 
-  .add-list-form button[type="submit"]:disabled {
+  .form-buttons button.primary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
 
-  .add-list-form button[type="button"] {
+  .form-buttons button:not(.primary) {
     background: transparent;
   }
 
@@ -216,13 +345,9 @@
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
+    gap: 0.5rem;
+    padding: 0.375rem;
     border-radius: 6px;
-    text-align: left;
     font-size: 0.875rem;
   }
 
@@ -234,17 +359,36 @@
     background: var(--bg-selected);
   }
 
-  .list-color {
-    width: 12px;
-    height: 12px;
+  .list-color-btn {
+    width: 14px;
+    height: 14px;
     border-radius: 3px;
     flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+    padding: 0;
   }
 
-  .list-name {
+  .list-color-btn:hover {
+    transform: scale(1.15);
+  }
+
+  .list-name-btn {
+    flex: 1;
+    text-align: left;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.375rem;
+    border-radius: 4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .list-name-btn:hover {
+    background: var(--bg-hover);
   }
 
   .error {
