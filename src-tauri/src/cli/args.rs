@@ -4,11 +4,11 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "potasko-cli")]
+#[command(name = "potasko")]
 #[command(about = "Potasko task manager CLI", long_about = None)]
 #[command(version)]
 pub struct Cli {
-    /// Database path (defaults to ~/.local/share/potasko/potasko.db)
+    /// Database path (defaults to ~/.local/share/com.vscode.potasko/potasko.db)
     #[arg(long, short)]
     pub database: Option<PathBuf>,
 
