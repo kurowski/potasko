@@ -109,9 +109,11 @@ impl CalDavClient {
         if path.starts_with("http://") || path.starts_with("https://") {
             path.to_string()
         } else if path.starts_with('/') {
-            // Extract base (scheme + host) from base_url
+            // Extract base (scheme + host + port) from base_url
             if let Ok(url) = reqwest::Url::parse(&self.base_url) {
-                format!("{}://{}{}", url.scheme(), url.host_str().unwrap_or(""), path)
+                let host = url.host_str().unwrap_or("");
+                let port_part = url.port().map(|p| format!(":{}", p)).unwrap_or_default();
+                format!("{}://{}{}{}", url.scheme(), host, port_part, path)
             } else {
                 format!("{}{}", self.base_url, path)
             }

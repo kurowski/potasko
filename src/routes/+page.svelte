@@ -6,8 +6,10 @@
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
+  import AccountList from '$lib/components/AccountList.svelte';
 
   let editingTask = $state<Task | null>(null);
+  let showSettings = $state(false);
 
   // Load lists on mount
   onMount(() => {
@@ -36,13 +38,21 @@
   function handleCloseEdit() {
     editingTask = null;
   }
+
+  function handleToggleSettings() {
+    showSettings = !showSettings;
+  }
 </script>
 
 <div class="app-layout">
-  <Sidebar />
+  <Sidebar {showSettings} onToggleSettings={handleToggleSettings} />
 
   <main class="main-content">
-    {#if listStore.selectedView}
+    {#if showSettings}
+      <div class="settings-panel">
+        <AccountList />
+      </div>
+    {:else if listStore.selectedView}
       <TaskListView onEditTask={handleEditTask} />
       {#if canAddTasks}
         {#key editingTask?.id}
@@ -86,5 +96,12 @@
 
   .empty-state p {
     margin: 0.25rem 0;
+  }
+
+  .settings-panel {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: var(--bg-primary);
   }
 </style>

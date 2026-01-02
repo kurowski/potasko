@@ -64,3 +64,40 @@ export async function getTasksToday(): Promise<Task[]> {
 export async function getTasksOverdue(): Promise<Task[]> {
   return invoke('get_tasks_overdue');
 }
+
+// --- Account commands ---
+
+import type {
+  Account,
+  CreateAccount,
+  UpdateAccount,
+  AccountTestResult,
+} from '$lib/types';
+
+export async function getAccounts(): Promise<Account[]> {
+  return invoke('get_accounts');
+}
+
+export async function getAccount(id: number): Promise<Account> {
+  return invoke('get_account', { id });
+}
+
+export async function createAccount(data: CreateAccount): Promise<Account> {
+  return invoke('create_account', { data });
+}
+
+export async function updateAccount(id: number, data: UpdateAccount): Promise<Account> {
+  return invoke('update_account', { id, data });
+}
+
+export async function deleteAccount(id: number): Promise<void> {
+  return invoke('delete_account', { id });
+}
+
+export async function testAccountConnection(
+  serverUrl: string,
+  username: string,
+  password: string
+): Promise<AccountTestResult> {
+  return invoke('test_account_connection', { serverUrl, username, password });
+}
