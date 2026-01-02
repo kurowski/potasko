@@ -11,7 +11,11 @@ RUN apt-get update && apt-get install -y \
   libwebkit2gtk-4.1-dev \
   libxdo-dev \
   libayatana-appindicator3-dev \
+  python3-pip \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Radicale for CalDAV development testing
+RUN pip install --break-system-packages radicale
 
 # Set up Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
@@ -44,6 +48,9 @@ RUN echo 'export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk)"' >> /et
 # Switch to vscode user for Rust installations
 USER vscode
 
+# Install rust-analyzer for IDE support
+RUN rustup component add rust-analyzer
+
 # Install Rust targets for Android
 RUN rustup target add aarch64-linux-android \
   && rustup target add armv7-linux-androideabi \
@@ -52,6 +59,9 @@ RUN rustup target add aarch64-linux-android \
 
 # Install Tauri CLI
 RUN cargo install tauri-cli --version "^2.0.0" --locked
+
+# Install sqlx-cli for database migrations
+RUN cargo install sqlx-cli --no-default-features --features sqlite
 
 # Install Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash

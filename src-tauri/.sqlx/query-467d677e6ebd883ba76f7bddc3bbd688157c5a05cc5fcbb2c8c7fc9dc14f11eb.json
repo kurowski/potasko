@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT id, name, server_url, username, password,\n               principal_url, calendar_home_url, created_at, updated_at\n        FROM accounts\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "name",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "server_url",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "username",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "password",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "principal_url",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "calendar_home_url",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at",
+        "ordinal": 7,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 8,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "467d677e6ebd883ba76f7bddc3bbd688157c5a05cc5fcbb2c8c7fc9dc14f11eb"
+}

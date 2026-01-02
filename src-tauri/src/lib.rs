@@ -1,13 +1,22 @@
+mod caldav;
+pub mod cli;
 mod commands;
-mod db;
+pub mod core;
+pub mod db;
 mod models;
 
 pub use models::{
     Task, CreateTask, UpdateTask, SyncStatus,
     TaskList, CreateTaskList, UpdateTaskList,
+    Account, CreateAccount, UpdateAccount,
 };
 
+pub use caldav::{CalDavClient, AccountTestResult, CalendarInfo};
+
 use commands::{
+    // Account commands
+    get_accounts, get_account, create_account, update_account, delete_account,
+    test_account_connection,
     // List commands
     get_lists, get_list, create_list, update_list, delete_list,
     // Task commands
@@ -45,6 +54,13 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // Account commands
+            get_accounts,
+            get_account,
+            create_account,
+            update_account,
+            delete_account,
+            test_account_connection,
             // List commands
             get_lists,
             get_list,

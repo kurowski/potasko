@@ -21,7 +21,6 @@
         "vadimcn.vscode-lldb",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "bradlc.vscode-tailwindcss",
         "svelte.svelte-vscode"
       ],
       "settings": {

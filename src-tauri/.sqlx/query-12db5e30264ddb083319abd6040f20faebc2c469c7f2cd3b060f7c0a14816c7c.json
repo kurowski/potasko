@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE accounts\n        SET name = ?, server_url = ?, username = ?, password = ?,\n            principal_url = ?, calendar_home_url = ?, updated_at = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": []
+  },
+  "hash": "12db5e30264ddb083319abd6040f20faebc2c469c7f2cd3b060f7c0a14816c7c"
+}
