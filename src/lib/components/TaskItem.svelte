@@ -71,7 +71,7 @@
     {/if}
   </button>
 
-  <div class="task-content" onclick={() => onEdit?.(task)}>
+  <button class="task-content" onclick={() => onEdit?.(task)}>
     <span class="task-title">{task.title}</span>
     <div class="task-meta">
       {#if task.due_date}
@@ -93,7 +93,7 @@
         </span>
       {/if}
     </div>
-  </div>
+  </button>
 
   <button class="delete-btn" onclick={handleDelete} title="Delete task">
     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -153,6 +153,12 @@
     flex: 1;
     min-width: 0;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    color: inherit;
   }
 
   .task-title {
