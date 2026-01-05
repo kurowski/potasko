@@ -17,6 +17,11 @@ RUN apt-get update && apt-get install -y \
 # Install Radicale for CalDAV development testing
 RUN pip install --break-system-packages radicale
 
+# Configure Radicale with test user (test/test)
+RUN mkdir -p /etc/radicale && \
+    echo -e "[server]\nhosts = 127.0.0.1:5232\n\n[auth]\ntype = htpasswd\nhtpasswd_filename = /etc/radicale/users\nhtpasswd_encryption = plain\n\n[storage]\nfilesystem_folder = /tmp/radicale-data\n\n[rights]\ntype = owner_only" > /etc/radicale/config && \
+    echo "test:test" > /etc/radicale/users
+
 # Set up Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH

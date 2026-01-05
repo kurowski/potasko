@@ -43,6 +43,11 @@ pub enum Commands {
         #[command(subcommand)]
         action: AccountCommands,
     },
+    /// Sync operations
+    Sync {
+        #[command(subcommand)]
+        action: SyncCommands,
+    },
 }
 
 #[derive(Subcommand)]
@@ -156,6 +161,30 @@ pub enum AccountCommands {
     /// Delete an account
     Delete {
         /// Account ID
+        id: i64,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum SyncCommands {
+    /// Sync a list with its CalDAV calendar
+    List {
+        /// List ID
+        id: i64,
+    },
+    /// Initial download from CalDAV calendar (pull only)
+    Download {
+        /// List ID
+        id: i64,
+    },
+    /// Sync all lists for an account
+    Account {
+        /// Account ID
+        id: i64,
+    },
+    /// Show sync status for a list
+    Status {
+        /// List ID
         id: i64,
     },
 }

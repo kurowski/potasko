@@ -111,3 +111,30 @@ export interface AccountTestResult {
   calendars: CalendarInfo[];
   error: string | null;
 }
+
+// --- Sync types ---
+
+export interface SyncStats {
+  pushed_created: number;
+  pushed_updated: number;
+  pushed_deleted: number;
+  pulled_created: number;
+  pulled_updated: number;
+  pulled_deleted: number;
+  conflicts: number;
+  errors: string[];
+}
+
+export interface SyncResult {
+  success: boolean;
+  list_id: number;
+  stats: SyncStats;
+  error: string | null;
+}
+
+export interface ListSyncStatus {
+  list_id: number;
+  has_caldav: boolean;
+  pending_changes: number;
+  last_sync: string | null;
+}

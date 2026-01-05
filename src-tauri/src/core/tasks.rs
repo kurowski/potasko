@@ -432,3 +432,269 @@ pub(crate) fn parse_datetime_opt(s: &str) -> Option<chrono::DateTime<Utc>> {
                 .ok()
         })
 }
+
+// ========== Sync helper functions ==========
+
+/// Get tasks that need to be pushed to the server.
+/// Returns tasks where local_version > synced_version OR sync_status = 'deleted'.
+pub async fn get_pending_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Task>> {
+    let rows = sqlx::query_as!(
+        TaskRow,
+        r#"
+        SELECT
+            id as "id!",
+            list_id as "list_id!",
+            uid as "uid!",
+            title as "title!",
+            description,
+            due_date,
+            priority,
+            completed as "completed!",
+            completed_at,
+            rrule,
+            caldav_href,
+            caldav_etag,
+            raw_icalendar,
+            local_version as "local_version!",
+            synced_version as "synced_version!",
+            sync_status as "sync_status!",
+            created_at as "created_at!",
+            updated_at as "updated_at!"
+        FROM tasks
+        WHERE list_id = ?
+          AND (local_version > synced_version OR sync_status = 'deleted')
+        "#,
+        list_id
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows.into_iter().map(Task::from).collect())
+}
+
+/// Get tasks indexed by their caldav_href (for sync comparison).
+pub async fn get_tasks_by_href(list_id: i64, pool: &SqlitePool) -> Result<std::collections::HashMap<String, Task>> {
+    let rows = sqlx::query_as!(
+        TaskRow,
+        r#"
+        SELECT
+            id as "id!",
+            list_id as "list_id!",
+            uid as "uid!",
+            title as "title!",
+            description,
+            due_date,
+            priority,
+            completed as "completed!",
+            completed_at,
+            rrule,
+            caldav_href,
+            caldav_etag,
+            raw_icalendar,
+            local_version as "local_version!",
+            synced_version as "synced_version!",
+            sync_status as "sync_status!",
+            created_at as "created_at!",
+            updated_at as "updated_at!"
+        FROM tasks
+        WHERE list_id = ? AND caldav_href IS NOT NULL
+        "#,
+        list_id
+    )
+    .fetch_all(pool)
+    .await?;
+
+    let mut map = std::collections::HashMap::new();
+    for row in rows {
+        let task = Task::from(row);
+        if let Some(ref href) = task.caldav_href {
+            map.insert(href.clone(), task);
+        }
+    }
+
+    Ok(map)
+}
+
+/// Update task sync metadata after successful push.
+pub async fn update_task_sync_metadata(
+    id: i64,
+    href: &str,
+    etag: Option<&str>,
+    raw_icalendar: &str,
+    synced_version: i64,
+    pool: &SqlitePool,
+) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET caldav_href = ?, caldav_etag = ?, raw_icalendar = ?,
+            synced_version = ?, sync_status = 'synced', updated_at = ?
+        WHERE id = ?
+        "#,
+        href,
+        etag,
+        raw_icalendar,
+        synced_version,
+        now,
+        id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Update task from server data (server-wins conflict resolution).
+pub async fn update_task_from_server(
+    id: i64,
+    title: &str,
+    description: Option<&str>,
+    due_date: Option<&str>,
+    priority: Option<i32>,
+    completed: bool,
+    completed_at: Option<&str>,
+    rrule: Option<&str>,
+    etag: Option<&str>,
+    raw_icalendar: &str,
+    pool: &SqlitePool,
+) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+    let priority_i64 = priority.map(|p| p as i64);
+    let completed_i64 = if completed { 1i64 } else { 0i64 };
+
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET title = ?, description = ?, due_date = ?, priority = ?,
+            completed = ?, completed_at = ?, rrule = ?,
+            caldav_etag = ?, raw_icalendar = ?,
+            synced_version = local_version, sync_status = 'synced',
+            updated_at = ?
+        WHERE id = ?
+        "#,
+        title,
+        description,
+        due_date,
+        priority_i64,
+        completed_i64,
+        completed_at,
+        rrule,
+        etag,
+        raw_icalendar,
+        now,
+        id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Create a task from server data (pulled from CalDAV).
+pub async fn create_task_from_server(
+    list_id: i64,
+    uid: &str,
+    href: &str,
+    title: &str,
+    description: Option<&str>,
+    due_date: Option<&str>,
+    priority: Option<i32>,
+    completed: bool,
+    completed_at: Option<&str>,
+    rrule: Option<&str>,
+    etag: Option<&str>,
+    raw_icalendar: &str,
+    pool: &SqlitePool,
+) -> Result<i64> {
+    let now = Utc::now().to_rfc3339();
+    let priority_i64 = priority.map(|p| p as i64);
+    let completed_i64 = if completed { 1i64 } else { 0i64 };
+
+    let result = sqlx::query!(
+        r#"
+        INSERT INTO tasks (
+            list_id, uid, title, description, due_date, priority,
+            completed, completed_at, rrule,
+            caldav_href, caldav_etag, raw_icalendar,
+            local_version, synced_version, sync_status,
+            created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'synced', ?, ?)
+        "#,
+        list_id,
+        uid,
+        title,
+        description,
+        due_date,
+        priority_i64,
+        completed_i64,
+        completed_at,
+        rrule,
+        href,
+        etag,
+        raw_icalendar,
+        now,
+        now
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(result.last_insert_rowid())
+}
+
+/// Hard delete a task from the database.
+pub async fn hard_delete_task(id: i64, pool: &SqlitePool) -> Result<()> {
+    sqlx::query!("DELETE FROM tasks WHERE id = ?", id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
+/// Update task by href from server data.
+pub async fn update_task_by_href_from_server(
+    href: &str,
+    title: &str,
+    description: Option<&str>,
+    due_date: Option<&str>,
+    priority: Option<i32>,
+    completed: bool,
+    completed_at: Option<&str>,
+    rrule: Option<&str>,
+    etag: Option<&str>,
+    raw_icalendar: &str,
+    pool: &SqlitePool,
+) -> Result<()> {
+    let now = Utc::now().to_rfc3339();
+    let priority_i64 = priority.map(|p| p as i64);
+    let completed_i64 = if completed { 1i64 } else { 0i64 };
+
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET title = ?, description = ?, due_date = ?, priority = ?,
+            completed = ?, completed_at = ?, rrule = ?,
+            caldav_etag = ?, raw_icalendar = ?,
+            synced_version = local_version, sync_status = 'synced',
+            updated_at = ?
+        WHERE caldav_href = ?
+        "#,
+        title,
+        description,
+        due_date,
+        priority_i64,
+        completed_i64,
+        completed_at,
+        rrule,
+        etag,
+        raw_icalendar,
+        now,
+        href
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}

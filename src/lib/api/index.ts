@@ -101,3 +101,26 @@ export async function testAccountConnection(
 ): Promise<AccountTestResult> {
   return invoke('test_account_connection', { serverUrl, username, password });
 }
+
+// --- Sync commands ---
+
+import type {
+  SyncResult,
+  ListSyncStatus,
+} from '$lib/types';
+
+export async function syncList(listId: number): Promise<SyncResult> {
+  return invoke('sync_list', { listId });
+}
+
+export async function syncAccount(accountId: number): Promise<SyncResult[]> {
+  return invoke('sync_account', { accountId });
+}
+
+export async function initialDownload(listId: number): Promise<SyncResult> {
+  return invoke('initial_download', { listId });
+}
+
+export async function getSyncStatus(listId: number): Promise<ListSyncStatus> {
+  return invoke('get_sync_status', { listId });
+}

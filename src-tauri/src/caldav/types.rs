@@ -30,6 +30,33 @@ pub struct AccountTestResult {
     pub error: Option<String>,
 }
 
+/// Response from a PUT request.
+#[derive(Debug, Clone)]
+pub struct PutResponse {
+    /// New ETag returned by the server.
+    pub etag: Option<String>,
+}
+
+/// Resource data from a multiget response.
+#[derive(Debug, Clone)]
+pub struct ResourceData {
+    /// Resource URL.
+    pub href: String,
+    /// Resource ETag.
+    pub etag: Option<String>,
+    /// iCalendar data.
+    pub icalendar: Option<String>,
+}
+
+/// Resource metadata (href + etag only, no data).
+#[derive(Debug, Clone)]
+pub struct ResourceMeta {
+    /// Resource URL.
+    pub href: String,
+    /// Resource ETag.
+    pub etag: Option<String>,
+}
+
 impl AccountTestResult {
     pub fn success(
         principal_url: String,

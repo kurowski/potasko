@@ -28,6 +28,23 @@ pub struct ParsedVTodo {
     pub raw_icalendar: String,
 }
 
+impl ParsedVTodo {
+    /// Get title with fallback to "Untitled".
+    pub fn title(&self) -> &str {
+        self.summary.as_deref().unwrap_or("Untitled")
+    }
+
+    /// Get due date as RFC3339 string.
+    pub fn due_date_rfc3339(&self) -> Option<String> {
+        self.due.map(|d| d.to_rfc3339())
+    }
+
+    /// Get completed_at as RFC3339 string.
+    pub fn completed_at_rfc3339(&self) -> Option<String> {
+        self.completed_at.map(|d| d.to_rfc3339())
+    }
+}
+
 /// Errors that can occur during VTODO parsing or building.
 #[derive(Debug, Error)]
 pub enum VTodoError {
@@ -136,6 +153,22 @@ pub struct VTodoBuildData {
     pub rrule: Option<String>,
     /// Existing raw iCalendar to preserve unknown properties.
     pub existing_raw: Option<String>,
+}
+
+impl From<&crate::models::Task> for VTodoBuildData {
+    fn from(task: &crate::models::Task) -> Self {
+        Self {
+            uid: task.uid.clone(),
+            title: task.title.clone(),
+            description: task.description.clone(),
+            due_date: task.due_date,
+            priority: task.priority,
+            completed: task.completed,
+            completed_at: task.completed_at,
+            rrule: task.rrule.clone(),
+            existing_raw: task.raw_icalendar.clone(),
+        }
+    }
 }
 
 /// Build an iCalendar string from task data.

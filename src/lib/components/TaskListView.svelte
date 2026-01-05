@@ -3,6 +3,7 @@
   import { taskStore } from '$lib/stores/tasks.svelte';
   import { listStore } from '$lib/stores/lists.svelte';
   import TaskItem from './TaskItem.svelte';
+  import SyncStatus from './SyncStatus.svelte';
 
   interface Props {
     onEditTask?: (task: Task) => void;
@@ -27,11 +28,21 @@
 
   // Hide completed section only for Overdue view (Today shows completed tasks)
   const hideCompletedSection = $derived(listStore.selectedSpecialView === 'overdue');
+
+  // Get list ID for sync (only for list views, not special views)
+  const syncListId = $derived(
+    listStore.selectedView?.type === 'list' ? listStore.selectedList?.id : null
+  );
 </script>
 
 <div class="task-list-view">
   <header class="list-header">
-    <h1>{viewTitle()}</h1>
+    <div class="header-top">
+      <h1>{viewTitle()}</h1>
+      {#if syncListId}
+        <SyncStatus listId={syncListId} />
+      {/if}
+    </div>
     <span class="task-count">{incompleteTasks.length} tasks</span>
   </header>
 
@@ -80,6 +91,13 @@
   .list-header {
     padding: 1.5rem 1.5rem 1rem;
     border-bottom: 1px solid var(--border-color);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 
   .list-header h1 {

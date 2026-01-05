@@ -4,7 +4,7 @@
 
 use chrono::{NaiveDate, NaiveDateTime, TimeZone, Utc};
 use clap::Parser;
-use potasko_lib::cli::args::{AccountCommands, Cli, Commands, ListCommands, TaskCommands};
+use potasko_lib::cli::args::{AccountCommands, Cli, Commands, ListCommands, SyncCommands, TaskCommands};
 use potasko_lib::cli::output::{
     print_accounts, print_error, print_lists, print_success, print_task, print_tasks,
 };
@@ -62,6 +62,7 @@ async fn run_command(
         Commands::Task { action } => handle_task_command(action, format, pool).await,
         Commands::List { action } => handle_list_command(action, format, pool).await,
         Commands::Account { action } => handle_account_command(action, format, pool).await,
+        Commands::Sync { action } => handle_sync_command(action, format, pool).await,
     }
 }
 
@@ -347,5 +348,129 @@ fn recurrence_to_rrule(s: &str) -> String {
         // If already in RRULE format, pass through
         other if other.starts_with("FREQ=") => other.to_uppercase(),
         other => format!("FREQ={}", other.to_uppercase()),
+    }
+}
+
+async fn handle_sync_command(
+    action: SyncCommands,
+    _format: potasko_lib::cli::args::OutputFormat,
+    pool: &SqlitePool,
+) -> Result<(), String> {
+    use potasko_lib::sync::SyncEngine;
+
+    let engine = SyncEngine::new(pool.clone());
+
+    match action {
+        SyncCommands::List { id } => {
+            print_success(&format!("Syncing list #{}...", id));
+            let result = engine.sync_list(id).await;
+            print_sync_result(&result);
+            if result.success {
+                Ok(())
+            } else {
+                Err(result.error.unwrap_or_else(|| "Sync failed".to_string()))
+            }
+        }
+
+        SyncCommands::Download { id } => {
+            print_success(&format!("Downloading tasks for list #{}...", id));
+            let result = engine.initial_download(id).await;
+            print_sync_result(&result);
+            if result.success {
+                Ok(())
+            } else {
+                Err(result.error.unwrap_or_else(|| "Download failed".to_string()))
+            }
+        }
+
+        SyncCommands::Account { id } => {
+            print_success(&format!("Syncing all lists for account #{}...", id));
+
+            // Get all lists for this account
+            let lists = sqlx::query!(
+                r#"SELECT id as "id!", name FROM task_lists WHERE account_id = ?"#,
+                id
+            )
+            .fetch_all(pool)
+            .await
+            .map_err(|e| e.to_string())?;
+
+            if lists.is_empty() {
+                print_success("No lists found for this account");
+                return Ok(());
+            }
+
+            let mut success = true;
+            for list in lists {
+                print_success(&format!("  Syncing '{}'...", list.name));
+                let result = engine.sync_list(list.id).await;
+                print_sync_result(&result);
+                if !result.success {
+                    success = false;
+                }
+            }
+
+            if success {
+                Ok(())
+            } else {
+                Err("Some lists failed to sync".to_string())
+            }
+        }
+
+        SyncCommands::Status { id } => {
+            let row = sqlx::query!(
+                r#"
+                SELECT
+                    l.name,
+                    l.caldav_url,
+                    l.ctag,
+                    l.updated_at,
+                    (SELECT COUNT(*) FROM tasks t
+                     WHERE t.list_id = l.id
+                     AND (t.local_version > t.synced_version OR t.sync_status != 'synced')) as pending_count
+                FROM task_lists l
+                WHERE l.id = ?
+                "#,
+                id
+            )
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("List #{} not found", id))?;
+
+            println!("List: {}", row.name);
+            println!("CalDAV URL: {}", row.caldav_url.as_deref().unwrap_or("(none)"));
+            println!("CTag: {}", row.ctag.as_deref().unwrap_or("(none)"));
+            println!("Last updated: {}", row.updated_at);
+            println!("Pending changes: {}", row.pending_count);
+
+            Ok(())
+        }
+    }
+}
+
+fn print_sync_result(result: &potasko_lib::sync::SyncResult) {
+    let s = &result.stats;
+    if result.success {
+        let mut parts = Vec::new();
+        if s.pushed_created > 0 { parts.push(format!("pushed {} new", s.pushed_created)); }
+        if s.pushed_updated > 0 { parts.push(format!("pushed {} updated", s.pushed_updated)); }
+        if s.pushed_deleted > 0 { parts.push(format!("pushed {} deleted", s.pushed_deleted)); }
+        if s.pulled_created > 0 { parts.push(format!("pulled {} new", s.pulled_created)); }
+        if s.pulled_updated > 0 { parts.push(format!("pulled {} updated", s.pulled_updated)); }
+        if s.pulled_deleted > 0 { parts.push(format!("pulled {} deleted", s.pulled_deleted)); }
+        if s.conflicts > 0 { parts.push(format!("{} conflicts", s.conflicts)); }
+
+        if parts.is_empty() {
+            print_success("Sync complete (no changes)");
+        } else {
+            print_success(&format!("Sync complete: {}", parts.join(", ")));
+        }
+    } else {
+        print_error(&format!("Sync failed: {}", result.error.as_deref().unwrap_or("Unknown error")));
+    }
+
+    for err in &s.errors {
+        print_error(&format!("  - {}", err));
     }
 }

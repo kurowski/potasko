@@ -49,12 +49,18 @@
     "source=${localEnv:XDG_RUNTIME_DIR}/wayland-0,target=/tmp/wayland-0,type=bind"
   ],
 
-  "forwardPorts": [1420, 8080, 3000],
-  
+  "forwardPorts": [1420, 8080, 3000, 5232],
+
   "portsAttributes": {
     "1420": {
       "label": "Tauri Dev Server",
       "onAutoForward": "notify"
+    },
+    "5232": {
+      "label": "Radicale CalDAV",
+      "onAutoForward": "silent"
     }
-  }
+  },
+
+  "postStartCommand": "radicale &"
 }

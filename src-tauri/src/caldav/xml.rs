@@ -1,7 +1,7 @@
 use roxmltree::{Document, Node};
 
 use super::client::CalDavError;
-use super::types::CalendarInfo;
+use super::types::{CalendarInfo, ResourceData, ResourceMeta};
 
 // DAV namespace
 const DAV_NS: &str = "DAV:";
@@ -200,4 +200,192 @@ pub fn propfind_calendars() -> &'static str {
     <cs:getctag/>
   </d:prop>
 </d:propfind>"#
+}
+
+// ========== Sync-related XML functions ==========
+
+/// PROPFIND to list resources with ETags.
+pub fn propfind_resources() -> &'static str {
+    r#"<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:">
+  <d:prop>
+    <d:getetag/>
+    <d:resourcetype/>
+  </d:prop>
+</d:propfind>"#
+}
+
+/// PROPFIND to get just the CTag.
+pub fn propfind_ctag() -> &'static str {
+    r#"<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:" xmlns:cs="http://calendarserver.org/ns/">
+  <d:prop>
+    <cs:getctag/>
+  </d:prop>
+</d:propfind>"#
+}
+
+/// Build a calendar-multiget REPORT body.
+pub fn build_multiget_report(hrefs: &[&str]) -> String {
+    let href_elements: String = hrefs
+        .iter()
+        .map(|h| format!("  <d:href>{}</d:href>", h))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    format!(
+        r#"<?xml version="1.0" encoding="utf-8"?>
+<c:calendar-multiget xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
+  <d:prop>
+    <d:getetag/>
+    <c:calendar-data/>
+  </d:prop>
+{}
+</c:calendar-multiget>"#,
+        href_elements
+    )
+}
+
+/// Parse a multiget response to extract href, etag, and calendar-data.
+pub fn parse_multiget_response(xml: &str) -> Result<Vec<ResourceData>, CalDavError> {
+    let doc = Document::parse(xml).map_err(|e| CalDavError::XmlParse(e.to_string()))?;
+
+    let mut resources = Vec::new();
+
+    for response_node in doc.descendants().filter(|n| n.has_tag_name((DAV_NS, "response"))) {
+        // Get href
+        let href = match response_node
+            .descendants()
+            .find(|n| n.has_tag_name((DAV_NS, "href")))
+            .and_then(|n| n.text())
+        {
+            Some(h) => h.to_string(),
+            None => continue,
+        };
+
+        // Look for successful propstat
+        for propstat in response_node.descendants().filter(|n| n.has_tag_name((DAV_NS, "propstat"))) {
+            let status = propstat
+                .descendants()
+                .find(|n| n.has_tag_name((DAV_NS, "status")))
+                .and_then(|n| n.text())
+                .unwrap_or("");
+
+            if !status.contains("200") {
+                continue;
+            }
+
+            if let Some(prop) = propstat.descendants().find(|n| n.has_tag_name((DAV_NS, "prop"))) {
+                let etag = prop
+                    .descendants()
+                    .find(|n| n.has_tag_name((DAV_NS, "getetag")))
+                    .and_then(|n| n.text())
+                    .map(|s| s.to_string());
+
+                let icalendar = prop
+                    .descendants()
+                    .find(|n| n.has_tag_name((CALDAV_NS, "calendar-data")))
+                    .and_then(|n| n.text())
+                    .map(|s| s.to_string());
+
+                resources.push(ResourceData {
+                    href,
+                    etag,
+                    icalendar,
+                });
+                break;
+            }
+        }
+    }
+
+    Ok(resources)
+}
+
+/// Parse a PROPFIND response to list resources with ETags.
+pub fn parse_resource_list(xml: &str) -> Result<Vec<ResourceMeta>, CalDavError> {
+    let doc = Document::parse(xml).map_err(|e| CalDavError::XmlParse(e.to_string()))?;
+
+    let mut resources = Vec::new();
+
+    for response_node in doc.descendants().filter(|n| n.has_tag_name((DAV_NS, "response"))) {
+        // Get href
+        let href = match response_node
+            .descendants()
+            .find(|n| n.has_tag_name((DAV_NS, "href")))
+            .and_then(|n| n.text())
+        {
+            Some(h) => h.to_string(),
+            None => continue,
+        };
+
+        // Look for successful propstat
+        for propstat in response_node.descendants().filter(|n| n.has_tag_name((DAV_NS, "propstat"))) {
+            let status = propstat
+                .descendants()
+                .find(|n| n.has_tag_name((DAV_NS, "status")))
+                .and_then(|n| n.text())
+                .unwrap_or("");
+
+            if !status.contains("200") {
+                continue;
+            }
+
+            if let Some(prop) = propstat.descendants().find(|n| n.has_tag_name((DAV_NS, "prop"))) {
+                // Check if this is a collection (calendar) - skip it, we only want resources
+                let is_collection = prop
+                    .descendants()
+                    .find(|n| n.has_tag_name((DAV_NS, "resourcetype")))
+                    .map(|rt| rt.descendants().any(|n| n.has_tag_name((DAV_NS, "collection"))))
+                    .unwrap_or(false);
+
+                if is_collection {
+                    continue;
+                }
+
+                let etag = prop
+                    .descendants()
+                    .find(|n| n.has_tag_name((DAV_NS, "getetag")))
+                    .and_then(|n| n.text())
+                    .map(|s| s.to_string());
+
+                resources.push(ResourceMeta { href, etag });
+                break;
+            }
+        }
+    }
+
+    Ok(resources)
+}
+
+/// Parse a PROPFIND response to extract just the CTag.
+pub fn parse_ctag_response(xml: &str) -> Result<Option<String>, CalDavError> {
+    let doc = Document::parse(xml).map_err(|e| CalDavError::XmlParse(e.to_string()))?;
+
+    for response_node in doc.descendants().filter(|n| n.has_tag_name((DAV_NS, "response"))) {
+        for propstat in response_node.descendants().filter(|n| n.has_tag_name((DAV_NS, "propstat"))) {
+            let status = propstat
+                .descendants()
+                .find(|n| n.has_tag_name((DAV_NS, "status")))
+                .and_then(|n| n.text())
+                .unwrap_or("");
+
+            if !status.contains("200") {
+                continue;
+            }
+
+            if let Some(prop) = propstat.descendants().find(|n| n.has_tag_name((DAV_NS, "prop"))) {
+                let ctag = prop
+                    .descendants()
+                    .find(|n| n.has_tag_name((CS_NS, "getctag")))
+                    .and_then(|n| n.text())
+                    .map(|s| s.to_string());
+
+                if ctag.is_some() {
+                    return Ok(ctag);
+                }
+            }
+        }
+    }
+
+    Ok(None)
 }
