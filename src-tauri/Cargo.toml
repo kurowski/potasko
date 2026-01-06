@@ -59,3 +59,10 @@ dirs = "6.0"
 icalendar = { version = "0.17", features = ["parser"] }
 rrule = "0.14"
 
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3"
+reqwest = { version = "0.13", features = ["blocking"] }
+uuid = { version = "1", features = ["v4"] }
+

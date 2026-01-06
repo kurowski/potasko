@@ -11,16 +11,13 @@ RUN apt-get update && apt-get install -y \
   libwebkit2gtk-4.1-dev \
   libxdo-dev \
   libayatana-appindicator3-dev \
-  python3-pip \
+  radicale \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Radicale for CalDAV development testing
-RUN pip install --break-system-packages radicale
-
-# Configure Radicale with test user (test/test)
-RUN mkdir -p /etc/radicale && \
-    echo -e "[server]\nhosts = 127.0.0.1:5232\n\n[auth]\ntype = htpasswd\nhtpasswd_filename = /etc/radicale/users\nhtpasswd_encryption = plain\n\n[storage]\nfilesystem_folder = /tmp/radicale-data\n\n[rights]\ntype = owner_only" > /etc/radicale/config && \
-    echo "test:test" > /etc/radicale/users
+# Configure Radicale for development (no auth, use /tmp for storage)
+RUN sed -i 's/^#\(hosts = localhost:5232\)/\1/' /etc/radicale/config && \
+    sed -i 's/^#type = denyall/type = none/' /etc/radicale/config && \
+    sed -i 's|^#filesystem_folder = /var/lib/radicale/collections|filesystem_folder = /tmp/radicale-data|' /etc/radicale/config
 
 # Set up Java environment
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64

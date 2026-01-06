@@ -59,16 +59,14 @@ potasko --database ./custom.db task list   # Custom DB path
 
 ## CalDAV Testing with Radicale
 
-Radicale is a lightweight CalDAV server that auto-starts with the devcontainer.
-
-**Test credentials:** `test` / `test`
+Radicale is a lightweight CalDAV server that auto-starts with the devcontainer (auth disabled for development).
 
 ### Quick Start
 
 ```bash
 cd src-tauri
 
-# Add the test account
+# Add the test account (any username/password works)
 ./target/debug/potasko account add --name "Radicale" --server http://localhost:5232 --username test --password test
 
 # Test connection and discover calendars
@@ -84,6 +82,20 @@ curl -u test:test -X MKCALENDAR "http://localhost:5232/test/tasks/"
 ./target/debug/potasko sync list 1
 ```
 
+### E2E Tests
+
+Run the sync integration tests against Radicale:
+
+```bash
+cd src-tauri
+
+# Ensure Radicale is running
+sudo service radicale start
+
+# Run E2E tests (sequential due to shared server)
+cargo test --test sync_e2e -- --test-threads=1
+```
+
 ### Reset Test Data
 
 ```bash
@@ -95,11 +107,13 @@ Or simply restart the devcontainer.
 ### Manual Radicale Control
 
 ```bash
-# Check if running
-pgrep -a radicale
+# Check status
+sudo service radicale status
 
-# Restart
-pkill radicale && radicale &
+# Start/stop/restart
+sudo service radicale start
+sudo service radicale stop
+sudo service radicale restart
 ```
 
 ## Project Documentation
