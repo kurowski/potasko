@@ -87,3 +87,27 @@ pub struct PullStats {
     pub deleted: u32,
     pub new_ctag: Option<String>,
 }
+
+/// Result of syncing an entire account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSyncResult {
+    pub success: bool,
+    pub account_id: i64,
+    /// Number of new calendars discovered and imported as lists.
+    pub calendars_imported: u32,
+    /// Results for each list synced.
+    pub list_results: Vec<SyncResult>,
+    pub error: Option<String>,
+}
+
+impl AccountSyncResult {
+    pub fn failure(account_id: i64, error: impl Into<String>) -> Self {
+        Self {
+            success: false,
+            account_id,
+            calendars_imported: 0,
+            list_results: Vec::new(),
+            error: Some(error.into()),
+        }
+    }
+}

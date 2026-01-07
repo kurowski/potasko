@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE tasks\n        SET caldav_href = ?, caldav_etag = ?, raw_icalendar = ?,\n            synced_version = ?, sync_status = 'synced', updated_at = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "46d2def95dea264759417280bae086aa87c16793453fc01d66781f021cc01dce"
+}

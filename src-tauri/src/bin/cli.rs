@@ -384,36 +384,28 @@ async fn handle_sync_command(
         }
 
         SyncCommands::Account { id } => {
-            print_success(&format!("Syncing all lists for account #{}...", id));
+            print_success(&format!("Syncing account #{}...", id));
 
-            // Get all lists for this account
-            let lists = sqlx::query!(
-                r#"SELECT id as "id!", name FROM task_lists WHERE account_id = ?"#,
-                id
-            )
-            .fetch_all(pool)
-            .await
-            .map_err(|e| e.to_string())?;
+            let result = engine.sync_account(id).await;
 
-            if lists.is_empty() {
-                print_success("No lists found for this account");
-                return Ok(());
+            // Print calendar discovery results
+            if result.calendars_imported > 0 {
+                print_success(&format!("Imported {} new calendar(s)", result.calendars_imported));
             }
 
-            let mut success = true;
-            for list in lists {
-                print_success(&format!("  Syncing '{}'...", list.name));
-                let result = engine.sync_list(list.id).await;
-                print_sync_result(&result);
-                if !result.success {
-                    success = false;
+            // Print results for each list
+            if result.list_results.is_empty() && result.calendars_imported == 0 {
+                print_success("No calendars found for this account");
+            } else {
+                for list_result in &result.list_results {
+                    print_sync_result(list_result);
                 }
             }
 
-            if success {
+            if result.success {
                 Ok(())
             } else {
-                Err("Some lists failed to sync".to_string())
+                Err(result.error.unwrap_or_else(|| "Some lists failed to sync".to_string()))
             }
         }
 

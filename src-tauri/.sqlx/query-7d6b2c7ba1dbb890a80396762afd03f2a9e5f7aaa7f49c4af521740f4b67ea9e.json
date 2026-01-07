@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO tasks (\n            list_id, uid, title, description, due_date, priority,\n            completed, completed_at, rrule,\n            caldav_href, caldav_etag, raw_icalendar,\n            local_version, synced_version, sync_status,\n            created_at, updated_at\n        )\n        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, 'synced', ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 14
+    },
+    "nullable": []
+  },
+  "hash": "7d6b2c7ba1dbb890a80396762afd03f2a9e5f7aaa7f49c4af521740f4b67ea9e"
+}

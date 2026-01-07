@@ -52,6 +52,10 @@ potasko account list
 potasko account add --name "Local" --server http://localhost:5232 --username test --password test
 potasko account test 1
 
+# Sync operations
+potasko sync account 1   # Discover calendars + sync all lists
+potasko sync list 1      # Sync a single list
+
 # Options
 potasko --format json task list --list 1   # JSON output
 potasko --database ./custom.db task list   # Custom DB path
@@ -69,17 +73,18 @@ cd src-tauri
 # Add the test account (any username/password works)
 ./target/debug/potasko account add --name "Radicale" --server http://localhost:5232 --username test --password test
 
-# Test connection and discover calendars
-./target/debug/potasko account test 1
-
-# Create a calendar
+# Create a calendar on the server
 curl -u test:test -X MKCALENDAR "http://localhost:5232/test/tasks/"
 
-# Link a list to the calendar
-./target/debug/potasko list link 1 --account 1 --calendar-url "http://localhost:5232/test/tasks/"
+# Sync account - discovers calendars and imports them as lists
+./target/debug/potasko sync account 1
 
-# Sync
-./target/debug/potasko sync list 1
+# View imported lists
+./target/debug/potasko list list
+
+# Add a task and sync
+./target/debug/potasko task add "Test task" --list 2
+./target/debug/potasko sync account 1
 ```
 
 ### E2E Tests

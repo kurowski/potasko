@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { TaskList } from '$lib/types';
   import { listStore } from '$lib/stores/lists.svelte';
+  import { syncStore } from '$lib/stores/sync.svelte';
 
   interface Props {
     showSettings?: boolean;
@@ -189,6 +190,14 @@
   {/if}
 
   <div class="sidebar-footer">
+    {#if syncStore.syncing}
+      <div class="sync-indicator">
+        <svg class="spinning" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+        </svg>
+        <span>Syncing...</span>
+      </div>
+    {/if}
     <button
       class="settings-btn"
       class:active={showSettings}
@@ -452,5 +461,29 @@
   .settings-btn.active {
     background: var(--bg-selected);
     color: var(--text-primary);
+  }
+
+  .sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--accent-color);
+  }
+
+  .sync-indicator svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 </style>

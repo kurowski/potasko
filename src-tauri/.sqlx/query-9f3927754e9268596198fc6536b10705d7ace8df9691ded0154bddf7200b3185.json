@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO task_lists (account_id, caldav_url, name, color, created_at, updated_at)\n        VALUES (?, ?, ?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 6
+    },
+    "nullable": []
+  },
+  "hash": "9f3927754e9268596198fc6536b10705d7ace8df9691ded0154bddf7200b3185"
+}

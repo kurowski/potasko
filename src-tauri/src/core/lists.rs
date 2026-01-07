@@ -100,6 +100,36 @@ pub async fn delete_list(id: i64, pool: &SqlitePool) -> Result<()> {
     Ok(())
 }
 
+/// Create a task list from a discovered CalDAV calendar.
+/// This creates a list already linked to an account with a caldav_url set.
+pub async fn create_list_from_calendar(
+    account_id: i64,
+    caldav_url: &str,
+    name: &str,
+    color: Option<&str>,
+    pool: &SqlitePool,
+) -> Result<TaskList> {
+    let now = Utc::now().to_rfc3339();
+
+    let result = sqlx::query!(
+        r#"
+        INSERT INTO task_lists (account_id, caldav_url, name, color, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        "#,
+        account_id,
+        caldav_url,
+        name,
+        color,
+        now,
+        now
+    )
+    .execute(pool)
+    .await?;
+
+    let id = result.last_insert_rowid();
+    get_list(id, pool).await
+}
+
 // --- Row type for sqlx mapping ---
 
 pub(crate) struct TaskListRow {

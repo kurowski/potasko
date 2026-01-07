@@ -1,6 +1,6 @@
 //! Tauri commands for sync operations.
 
-use crate::sync::{SyncEngine, SyncResult};
+use crate::sync::{AccountSyncResult, SyncEngine, SyncResult};
 use crate::DbState;
 use sqlx::SqlitePool;
 use tauri::State;
@@ -19,27 +19,11 @@ pub async fn initial_download(list_id: i64, db: State<'_, DbState>) -> Result<Sy
     Ok(engine.initial_download(list_id).await)
 }
 
-/// Sync all lists for an account.
+/// Sync all lists for an account: discovers calendars, imports new ones, syncs all lists.
 #[tauri::command]
-pub async fn sync_account(account_id: i64, db: State<'_, DbState>) -> Result<Vec<SyncResult>, String> {
-    let pool = pool_from_state(&db);
-    let engine = SyncEngine::new(pool.clone());
-
-    // Get all lists for this account
-    let rows = sqlx::query!(
-        r#"SELECT id as "id!" FROM task_lists WHERE account_id = ?"#,
-        account_id
-    )
-    .fetch_all(&pool)
-    .await
-    .map_err(|e| e.to_string())?;
-
-    let mut results = Vec::new();
-    for row in rows {
-        results.push(engine.sync_list(row.id).await);
-    }
-
-    Ok(results)
+pub async fn sync_account(account_id: i64, db: State<'_, DbState>) -> Result<AccountSyncResult, String> {
+    let engine = SyncEngine::new(pool_from_state(&db));
+    Ok(engine.sync_account(account_id).await)
 }
 
 /// Get sync status for a list.

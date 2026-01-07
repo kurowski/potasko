@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE tasks\n        SET title = ?, description = ?, due_date = ?, priority = ?,\n            completed = ?, completed_at = ?, rrule = ?,\n            caldav_etag = ?, raw_icalendar = ?,\n            synced_version = local_version, sync_status = 'synced',\n            updated_at = ?\n        WHERE id = ?\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 11
+    },
+    "nullable": []
+  },
+  "hash": "57db4e3e861bda4e8d3162b95d4b23a2acb188d0b5f6109c1d0e0cad0d3f695b"
+}

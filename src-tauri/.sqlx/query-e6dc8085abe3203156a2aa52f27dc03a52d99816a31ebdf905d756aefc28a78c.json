@@ -1,0 +1,44 @@
+{
+  "db_name": "SQLite",
+  "query": "\n                SELECT\n                    l.name,\n                    l.caldav_url,\n                    l.ctag,\n                    l.updated_at,\n                    (SELECT COUNT(*) FROM tasks t\n                     WHERE t.list_id = l.id\n                     AND (t.local_version > t.synced_version OR t.sync_status != 'synced')) as pending_count\n                FROM task_lists l\n                WHERE l.id = ?\n                ",
+  "describe": {
+    "columns": [
+      {
+        "name": "name",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "caldav_url",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "ctag",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 3,
+        "type_info": "Text"
+      },
+      {
+        "name": "pending_count",
+        "ordinal": 4,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "e6dc8085abe3203156a2aa52f27dc03a52d99816a31ebdf905d756aefc28a78c"
+}

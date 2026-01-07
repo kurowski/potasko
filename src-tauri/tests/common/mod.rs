@@ -121,26 +121,52 @@ impl TestContext {
         Ok(1)
     }
 
-    /// Link a list to the calendar (direct SQL since no CLI command exists).
-    pub fn link_list(&self, list_id: i64, account_id: i64) -> Result<(), String> {
-        // Use sqlite3 CLI to update the list
+    /// Sync the account - discovers calendars and imports them as lists.
+    /// Returns the ID of the imported list.
+    pub fn sync_account(&self, account_id: i64) -> Result<i64, String> {
+        let output = self
+            .cli()
+            .args(["sync", "account", &account_id.to_string()])
+            .output()
+            .map_err(|e| e.to_string())?;
+
+        if !output.status.success() {
+            return Err(format!(
+                "Failed to sync account: {}",
+                String::from_utf8_lossy(&output.stderr)
+            ));
+        }
+
+        // Get the list ID for the imported calendar
+        self.get_synced_list_id(account_id)
+    }
+
+    /// Get the list ID for this test's specific calendar.
+    pub fn get_synced_list_id(&self, _account_id: i64) -> Result<i64, String> {
+        // Query the database for the list matching this test's calendar_url
         let output = std::process::Command::new("sqlite3")
             .arg(&self.db_path)
             .arg(format!(
-                "UPDATE task_lists SET account_id = {}, caldav_url = '{}' WHERE id = {};",
-                account_id, self.calendar_url, list_id
+                "SELECT id FROM task_lists WHERE caldav_url = '{}' LIMIT 1;",
+                self.calendar_url
             ))
             .output()
             .map_err(|e| e.to_string())?;
 
         if !output.status.success() {
-            Err(format!(
-                "Failed to link list: {}",
+            return Err(format!(
+                "Failed to query list: {}",
                 String::from_utf8_lossy(&output.stderr)
-            ))
-        } else {
-            Ok(())
+            ));
         }
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let list_id: i64 = stdout
+            .trim()
+            .parse()
+            .map_err(|_| format!("No list found for calendar URL {}", self.calendar_url))?;
+
+        Ok(list_id)
     }
 
     /// Create a VTODO on the server and return its URL.

@@ -106,6 +106,7 @@ export async function testAccountConnection(
 
 import type {
   SyncResult,
+  AccountSyncResult,
   ListSyncStatus,
 } from '$lib/types';
 
@@ -113,7 +114,7 @@ export async function syncList(listId: number): Promise<SyncResult> {
   return invoke('sync_list', { listId });
 }
 
-export async function syncAccount(accountId: number): Promise<SyncResult[]> {
+export async function syncAccount(accountId: number): Promise<AccountSyncResult> {
   return invoke('sync_account', { accountId });
 }
 

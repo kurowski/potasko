@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT COUNT(*) as count FROM tasks\n        WHERE list_id = ? AND (local_version > synced_version OR sync_status != 'synced')\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "count",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4353d03a9e6ce2b2598f0726eb0d8135577d4ab9ec998cd295e891c4b8640736"
+}

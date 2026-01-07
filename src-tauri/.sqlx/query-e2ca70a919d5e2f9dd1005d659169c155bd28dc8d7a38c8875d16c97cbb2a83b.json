@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        INSERT INTO sync_log (account_id, list_id, task_id, operation, status, message, http_status, timestamp)\n        VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 8
+    },
+    "nullable": []
+  },
+  "hash": "e2ca70a919d5e2f9dd1005d659169c155bd28dc8d7a38c8875d16c97cbb2a83b"
+}

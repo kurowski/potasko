@@ -132,6 +132,14 @@ export interface SyncResult {
   error: string | null;
 }
 
+export interface AccountSyncResult {
+  success: boolean;
+  account_id: number;
+  calendars_imported: number;
+  list_results: SyncResult[];
+  error: string | null;
+}
+
 export interface ListSyncStatus {
   list_id: number;
   has_caldav: boolean;

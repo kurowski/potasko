@@ -156,7 +156,8 @@ impl CalDavClient {
     }
 
     /// Run full CalDAV discovery.
-    async fn discover(&self) -> Result<(String, String, Vec<CalendarInfo>)> {
+    /// Returns (principal_url, calendar_home_url, calendars).
+    pub async fn discover(&self) -> Result<(String, String, Vec<CalendarInfo>)> {
         discovery::discover(self).await
     }
 

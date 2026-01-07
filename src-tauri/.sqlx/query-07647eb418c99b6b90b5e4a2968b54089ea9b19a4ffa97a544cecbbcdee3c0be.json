@@ -1,0 +1,32 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT caldav_url, ctag, updated_at FROM task_lists WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "caldav_url",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "ctag",
+        "ordinal": 1,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at",
+        "ordinal": 2,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "07647eb418c99b6b90b5e4a2968b54089ea9b19a4ffa97a544cecbbcdee3c0be"
+}
