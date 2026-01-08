@@ -8,3 +8,9 @@
 
 - Package manager: pnpm
 - Styling: Plain CSS (no Tailwind/frameworks)
+
+## Architecture
+
+- Thin wrapper pattern: Tauri commands call `core::*` functions
+- CLI binary (`potasko`) shares core logic with Tauri
+- See `docs/PLAN.md` for current phase status
