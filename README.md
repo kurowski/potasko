@@ -110,6 +110,7 @@ pnpm test:e2e
 ```
 
 This will automatically:
+
 - Build the Tauri app in debug mode
 - Start Radicale for CalDAV testing
 - Launch tauri-driver
@@ -137,5 +138,5 @@ sudo service radicale restart
 
 ## Project Documentation
 
-- `PLAN.md` - Architecture and feature roadmap
-- `IMPLEMENTATION.md` - Detailed implementation notes and session log
+- `docs/PLAN.md` - Architecture and feature roadmap
+- `docs/IMPLEMENTATION.md` - Detailed implementation notes and session log
