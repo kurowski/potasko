@@ -3,12 +3,12 @@
 use sqlx::SqlitePool;
 
 use crate::caldav::CalDavClient;
-use crate::core::{accounts as core_accounts, lists as core_lists};
-use crate::models::TaskList;
+use crate::core::{accounts as core_accounts, lists as core_lists, tasks as core_tasks};
+use crate::models::{SyncStatus, TaskList};
 
 use super::pull::pull_changes;
-use super::push::push_changes;
-use super::types::{AccountSyncResult, SyncError, SyncResult, SyncStats};
+use super::push::{push_changes, push_create, push_delete, push_update};
+use super::types::{AccountSyncResult, PushTaskResult, SyncError, SyncResult, SyncStats};
 
 /// Sync engine for a database connection.
 pub struct SyncEngine {
@@ -211,6 +211,64 @@ impl SyncEngine {
             calendars_imported,
             list_results,
             error: None,
+        }
+    }
+
+    /// Push a single task to the server (no pull).
+    /// This is used for eager sync after task mutations.
+    pub async fn push_task(&self, task_id: i64) -> PushTaskResult {
+        // 1. Get the task
+        let task = match core_tasks::get_task(task_id, &self.pool).await {
+            Ok(t) => t,
+            Err(e) => return PushTaskResult::failure(task_id, e),
+        };
+
+        // 2. Get the list
+        let list = match core_lists::get_list(task.list_id, &self.pool).await {
+            Ok(l) => l,
+            Err(e) => return PushTaskResult::failure(task_id, e),
+        };
+
+        // 3. Check if list has CalDAV URL
+        let caldav_url = match &list.caldav_url {
+            Some(url) => url.clone(),
+            None => return PushTaskResult::failure(task_id, "List not connected to CalDAV"),
+        };
+
+        // 4. Get account and create client
+        let account = match self.get_account_for_list(&list).await {
+            Ok(a) => a,
+            Err(e) => return PushTaskResult::failure(task_id, e),
+        };
+
+        let client = match CalDavClient::new(&account.server_url, &account.username, &account.password) {
+            Ok(c) => c,
+            Err(e) => return PushTaskResult::failure(task_id, e),
+        };
+
+        // 5. Push based on task state
+        let result = match task.sync_status {
+            SyncStatus::Pending if task.caldav_href.is_none() => {
+                // CREATE: New task, never synced
+                push_create(&self.pool, &client, &task, &caldav_url).await
+            }
+            SyncStatus::Pending | SyncStatus::Synced if task.local_version > task.synced_version => {
+                // UPDATE: Existing task with local changes
+                push_update(&self.pool, &client, &task).await
+            }
+            SyncStatus::Deleted => {
+                // DELETE: Soft-deleted, remove from server
+                push_delete(&self.pool, &client, &task).await
+            }
+            _ => {
+                // No changes to push
+                return PushTaskResult::success(task_id, "no_change");
+            }
+        };
+
+        match result {
+            Ok(action) => PushTaskResult::success(task_id, action.as_str()),
+            Err(e) => PushTaskResult::failure(task_id, e),
         }
     }
 

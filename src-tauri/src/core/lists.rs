@@ -100,6 +100,18 @@ pub async fn delete_list(id: i64, pool: &SqlitePool) -> Result<()> {
     Ok(())
 }
 
+/// Check if a list has a CalDAV URL (i.e., is synced to a server).
+pub async fn is_synced_list(list_id: i64, pool: &SqlitePool) -> Result<bool> {
+    let result = sqlx::query_scalar!(
+        "SELECT caldav_url FROM task_lists WHERE id = ?",
+        list_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(result.flatten().is_some())
+}
+
 /// Create a task list from a discovered CalDAV calendar.
 /// This creates a list already linked to an account with a caldav_url set.
 pub async fn create_list_from_calendar(

@@ -64,14 +64,25 @@ pub async fn push_changes(
     Ok(stats)
 }
 
-enum PushAction {
+/// Action taken when pushing a task.
+pub enum PushAction {
     Created,
     Updated,
     Deleted,
 }
 
+impl PushAction {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            PushAction::Created => "created",
+            PushAction::Updated => "updated",
+            PushAction::Deleted => "deleted",
+        }
+    }
+}
+
 /// Push a new task to the server.
-async fn push_create(
+pub async fn push_create(
     pool: &SqlitePool,
     client: &CalDavClient,
     task: &Task,
@@ -93,7 +104,7 @@ async fn push_create(
 }
 
 /// Push an updated task to the server.
-async fn push_update(
+pub async fn push_update(
     pool: &SqlitePool,
     client: &CalDavClient,
     task: &Task,
@@ -111,7 +122,7 @@ async fn push_update(
 }
 
 /// Delete a task from the server.
-async fn push_delete(
+pub async fn push_delete(
     pool: &SqlitePool,
     client: &CalDavClient,
     task: &Task,

@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT caldav_url FROM task_lists WHERE id = ?",
+  "describe": {
+    "columns": [
+      {
+        "name": "caldav_url",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "8c8855830d4b0a7494fac3d17c315cd89d388fb38a8546ef969e42972197ec73"
+}

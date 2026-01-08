@@ -111,3 +111,33 @@ impl AccountSyncResult {
         }
     }
 }
+
+/// Result of pushing a single task.
+#[derive(Debug)]
+pub struct PushTaskResult {
+    pub success: bool,
+    pub task_id: i64,
+    /// Action taken: "created", "updated", "deleted", or "no_change"
+    pub action: Option<String>,
+    pub error: Option<String>,
+}
+
+impl PushTaskResult {
+    pub fn success(task_id: i64, action: &str) -> Self {
+        Self {
+            success: true,
+            task_id,
+            action: Some(action.to_string()),
+            error: None,
+        }
+    }
+
+    pub fn failure(task_id: i64, error: impl ToString) -> Self {
+        Self {
+            success: false,
+            task_id,
+            action: None,
+            error: Some(error.to_string()),
+        }
+    }
+}
