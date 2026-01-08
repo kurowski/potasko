@@ -87,7 +87,7 @@ curl -u test:test -X MKCALENDAR "http://localhost:5232/test/tasks/"
 ./target/debug/potasko sync account 1
 ```
 
-### E2E Tests
+### Backend E2E Tests
 
 Run the sync integration tests against Radicale:
 
@@ -100,6 +100,20 @@ sudo service radicale start
 # Run E2E tests (sequential due to shared server)
 cargo test --test sync_e2e -- --test-threads=1
 ```
+
+### UI E2E Tests
+
+Run end-to-end tests for the GUI using WebdriverIO and tauri-driver:
+
+```bash
+pnpm test:e2e
+```
+
+This will automatically:
+- Build the Tauri app in debug mode
+- Start Radicale for CalDAV testing
+- Launch tauri-driver
+- Run tests that interact with the actual GUI
 
 ### Reset Test Data
 

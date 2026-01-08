@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
   libxdo-dev \
   libayatana-appindicator3-dev \
   radicale \
+  webkitgtk-webdriver \
   && rm -rf /var/lib/apt/lists/*
 
 # Configure Radicale for development (no auth, use /tmp for storage)
@@ -61,6 +62,9 @@ RUN rustup target add aarch64-linux-android \
 
 # Install Tauri CLI
 RUN cargo install tauri-cli --version "^2.0.0" --locked
+
+# Install tauri-driver for E2E testing
+RUN cargo install tauri-driver
 
 # Install sqlx-cli for database migrations
 RUN cargo install sqlx-cli --no-default-features --features sqlite
