@@ -158,7 +158,7 @@ Build the Flatpak package from source:
 
 ```bash
 # Build and export to local repo
-flatpak-builder --repo=repo --force-clean .flatpak-builder/build/potasko net.kurowski.potasko.yml
+flatpak-builder --repo=repo --force-clean build-dir net.kurowski.potasko.yml
 
 # Create distributable bundle
 flatpak build-bundle repo potasko.flatpak net.kurowski.potasko
