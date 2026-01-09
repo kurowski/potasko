@@ -14,7 +14,7 @@ flatpak run net.kurowski.potasko
 
 ### Build from Source
 
-See [Development](#development-devcontainer) section below.
+See [Building Flatpak](#building-flatpak) section below.
 
 ---
 
@@ -150,6 +150,33 @@ sudo service radicale status
 sudo service radicale start
 sudo service radicale stop
 sudo service radicale restart
+```
+
+## Building Flatpak
+
+Build the Flatpak package from source:
+
+```bash
+# Build and export to local repo
+flatpak-builder --repo=repo --force-clean .flatpak-builder/build/potasko net.kurowski.potasko.yml
+
+# Create distributable bundle
+flatpak build-bundle repo potasko.flatpak net.kurowski.potasko
+
+# Install locally for testing
+flatpak install --user potasko.flatpak
+```
+
+### Linting
+
+Run the Flathub linter before submitting:
+
+```bash
+# Lint the manifest
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest net.kurowski.potasko.yml
+
+# Lint the built repo
+flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
 ```
 
 ## Project Documentation

@@ -4,12 +4,13 @@
 
 **Always check for latest crate versions before adding dependencies.** Use web search to verify current versions on crates.io rather than relying on memory, as version information may be outdated.
 
-### CRITICAL: Update Dockerfile After Installing Dependencies
+### CRITICAL: Update Dockerfile After Installing Tooling or Dependencies
 
-**After successfully installing ANY system package or tool, IMMEDIATELY update `.devcontainer/Dockerfile` before proceeding with other work.**
+**After successfully installing ANY system package or build tool, IMMEDIATELY update `.devcontainer/Dockerfile` before proceeding with other work.**
 
 Workflow:
-1. Install the dependency (experiment with approaches as needed)
+
+1. Install the tool or dependency (experiment with approaches as needed)
 2. Once installation succeeds, **STOP** and update the Dockerfile with the working command
 3. Only then continue with the task that required the dependency
 

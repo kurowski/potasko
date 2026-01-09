@@ -78,6 +78,18 @@ RUN cargo install tauri-driver
 # Install sqlx-cli for database migrations
 RUN cargo install sqlx-cli --no-default-features --features sqlite
 
+# Set up Flatpak with Flathub remote and install runtimes for building
+# D-Bus must be started for flatpak install to complete successfully
+RUN flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+
+USER root
+RUN mkdir -p /var/run/dbus && dbus-daemon --system --fork && \
+    su vscode -c "flatpak install -y --user flathub org.flatpak.Builder \
+        org.gnome.Platform//48 org.gnome.Sdk//48 \
+        org.freedesktop.Sdk.Extension.rust-stable//24.08 \
+        org.freedesktop.Sdk.Extension.node22//24.08"
+USER vscode
+
 # Install Claude Code
 RUN curl -fsSL https://claude.ai/install.sh | bash
 

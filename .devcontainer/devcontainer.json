@@ -63,5 +63,5 @@
     }
   },
 
-  "postStartCommand": "sudo service radicale start"
+  "postStartCommand": ".devcontainer/onStart.sh"
 }
