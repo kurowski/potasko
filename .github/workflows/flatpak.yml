@@ -11,7 +11,7 @@ jobs:
   flatpak:
     runs-on: ubuntu-latest
     container:
-      image: bilelmoussaoui/flatpak-github-actions:gnome-48
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-48
       options: --privileged
 
     steps:
@@ -22,16 +22,11 @@ jobs:
         with:
           manifest-path: net.kurowski.potasko.yml
           bundle: potasko.flatpak
-          cache-key: flatpak-builder-${{ github.sha }}
-
-      - name: Upload Flatpak bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: potasko-flatpak
-          path: potasko.flatpak
+          upload-artifact: true
+          cache-key: flatpak-builder-${{ hashFiles('pnpm-lock.yaml', 'src-tauri/Cargo.lock') }}
 
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: potasko.flatpak
