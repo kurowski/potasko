@@ -3248,7 +3248,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "potasko"
+name = "potasko-gui"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",

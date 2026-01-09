@@ -5,7 +5,7 @@ import fs from 'fs';
 
 const PROJECT_ROOT = path.resolve(import.meta.dirname, '../../');
 const CLI_PATH = path.join(PROJECT_ROOT, 'src-tauri/target/debug/potasko');
-const APP_DATA_DIR = path.join(process.env.HOME, '.local/share/com.vscode.potasko');
+const APP_DATA_DIR = path.join(process.env.HOME, '.local/share/net.kurowski.potasko');
 const APP_DB = path.join(APP_DATA_DIR, 'potasko.db');
 
 /**

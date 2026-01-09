@@ -13,7 +13,16 @@ RUN apt-get update && apt-get install -y \
   libayatana-appindicator3-dev \
   radicale \
   webkitgtk-webdriver \
+  xdg-utils \
+  flatpak \
+  flatpak-builder \
+  python3-pip \
+  python3-aiohttp \
+  python3-toml \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Python tools for Flatpak dependency vendoring
+RUN pip3 install --break-system-packages tomlkit flatpak-node-generator
 
 # Configure Radicale for development (no auth, use /tmp for storage)
 RUN sed -i 's/^#\(hosts = localhost:5232\)/\1/' /etc/radicale/config && \

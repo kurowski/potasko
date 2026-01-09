@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>net.kurowski.potasko</id>
+  <name>Potasko</name>
+  <summary>Task management with CalDAV sync</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="net.kurowski">
+    <name>Brandt Kurowski</name>
+  </developer>
+  <description>
+    <p>
+      Potasko is a task management application that syncs with CalDAV servers.
+      Manage your tasks locally and keep them synchronized across devices.
+    </p>
+  </description>
+  <launchable type="desktop-id">net.kurowski.potasko.desktop</launchable>
+  <url type="homepage">https://github.com/example/potasko</url>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="0.1.0" date="2026-01-08">
+      <description>
+        <p>Initial release</p>
+      </description>
+    </release>
+  </releases>
+  <branding>
+    <color type="primary" scheme_preference="light">#f0f0f0</color>
+    <color type="primary" scheme_preference="dark">#303030</color>
+  </branding>
+</component>

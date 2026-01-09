@@ -5,6 +5,7 @@
   },
 
   "runArgs": [
+    "--privileged",
     "--security-opt", "label=disable"
   ],
 

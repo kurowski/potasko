@@ -1382,3 +1382,101 @@ Run `pnpm tauri dev`, add a task to a synced list, check Radicale for the new ta
 | 6.2  | Offline change queue with retry | [ ] Pending  |
 | 6.3  | Background sync scheduler       | [ ] Pending  |
 | 6.4  | Sync logging for debugging      | [ ] Pending  |
+
+---
+
+---
+
+# Distribution Setup
+
+## Flatpak Configuration
+
+**Status**: [x] Complete
+
+### Session 17 (Flatpak Setup)
+
+**Goal:** Configure Flatpak build for Flathub distribution
+
+**Completed:**
+
+- Fixed `pnpm tauri build` error: missing `xdg-utils` (added to Dockerfile)
+- Fixed AppImage bundling wrong binary: renamed Cargo package from `potasko` to `potasko-gui`
+- Changed app identifier from `com.vscode.potasko` to `net.kurowski.potasko` everywhere
+- Created Flatpak manifest and metadata files:
+  - `net.kurowski.potasko.yml` - Flatpak manifest (GNOME 48 runtime)
+  - `net.kurowski.potasko.desktop` - Desktop entry
+  - `net.kurowski.potasko.metainfo.xml` - AppStream metadata for Flathub
+- Added Flatpak tooling to Dockerfile:
+  - `flatpak`, `flatpak-builder`
+  - `python3-pip`, `python3-aiohttp`, `python3-toml`
+  - `tomlkit`, `flatpak-node-generator` (pip)
+- Added `--privileged` to devcontainer for flatpak-builder support
+- Created `.github/workflows/flatpak.yml` for CI builds
+
+**Files Created:**
+
+- `net.kurowski.potasko.yml`
+- `net.kurowski.potasko.desktop`
+- `net.kurowski.potasko.metainfo.xml`
+- `.github/workflows/flatpak.yml`
+
+**Files Modified:**
+
+- `.devcontainer/Dockerfile` - Added flatpak, python tools
+- `.devcontainer/devcontainer.json` - Added `--privileged`
+- `.gitignore` - Added Flatpak build artifacts
+- `src-tauri/tauri.conf.json` - Changed identifier
+- `src-tauri/Cargo.toml` - Renamed package to `potasko-gui`
+- `src-tauri/src/cli/mod.rs` - Changed APP_IDENTIFIER
+- `src-tauri/src/cli/args.rs` - Updated help text
+- Various test files - Updated app identifier paths
+
+---
+
+### Session 18 (Flatpak Build Working)
+
+**Goal:** Get Flatpak build working end-to-end
+
+**Completed:**
+
+- Installed Flatpak runtimes and SDK extensions (GNOME 48, rust-stable, node22)
+- Fixed blank window issue: must use `tauri build` instead of separate `npm build` + `cargo build`
+- Tauri CLI properly embeds frontend assets during compilation
+- Changed `tauri.conf.json` to use `npm run` commands (pnpm not available in Flatpak SDK)
+- Added WebKitGTK permissions for dconf access
+- All builds now use online dependencies (simpler than vendored sources)
+
+**Key Fix:**
+
+The blank window was caused by using `cargo build` directly, which doesn't embed the frontend assets properly. Using `npm run tauri build` runs the Tauri CLI which handles frontend embedding correctly.
+
+**Build Instructions:**
+
+1. Set up Flatpak runtimes (one-time):
+   ```bash
+   flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+   flatpak install --user flathub org.gnome.Platform//48 org.gnome.Sdk//48
+   flatpak install --user flathub org.freedesktop.Sdk.Extension.rust-stable//24.08
+   flatpak install --user flathub org.freedesktop.Sdk.Extension.node22//24.08
+   ```
+
+2. Build Flatpak:
+   ```bash
+   flatpak-builder --user --force-clean build-dir net.kurowski.potasko.yml
+   ```
+
+3. Export bundle (for distribution):
+   ```bash
+   flatpak build-export repo build-dir
+   flatpak build-bundle repo potasko.flatpak net.kurowski.potasko
+   ```
+
+4. Install and run:
+   ```bash
+   flatpak install --user potasko.flatpak
+   flatpak run net.kurowski.potasko
+   ```
+
+**CI/CD:**
+
+The `.github/workflows/flatpak.yml` workflow automatically builds on push/PR and uploads artifacts.

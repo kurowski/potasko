@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Potasko
+Comment=Task management with CalDAV sync
+Exec=potasko-gui
+Icon=net.kurowski.potasko
+Terminal=false
+Type=Application
+Categories=Office;ProjectManagement;
+Keywords=tasks;todo;caldav;
+StartupWMClass=potasko-gui

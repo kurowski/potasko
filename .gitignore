@@ -4,6 +4,7 @@ node_modules
 /build
 /.svelte-kit
 /package
+/target/rust-analyzer
 .env
 .env.*
 !.env.example
@@ -11,3 +12,10 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vscode
 CLAUDE.local.md
+.claude/settings.local.json
+
+# Flatpak build artifacts
+build-dir/
+.flatpak-builder/
+repo/
+*.flatpak

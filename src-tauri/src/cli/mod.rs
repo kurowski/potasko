@@ -6,7 +6,7 @@ pub mod output;
 use std::path::PathBuf;
 
 /// Tauri app identifier (must match tauri.conf.json)
-const APP_IDENTIFIER: &str = "com.vscode.potasko";
+const APP_IDENTIFIER: &str = "net.kurowski.potasko";
 
 /// Get the default database path matching Tauri's app data directory.
 pub fn default_db_path() -> PathBuf {

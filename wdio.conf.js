@@ -5,7 +5,7 @@ import fs from 'fs';
 let tauriDriver;
 
 // Database paths
-const APP_DATA_DIR = path.join(process.env.HOME, '.local/share/com.vscode.potasko');
+const APP_DATA_DIR = path.join(process.env.HOME, '.local/share/net.kurowski.potasko');
 const APP_DB = path.join(APP_DATA_DIR, 'potasko.db');
 const CLI_PATH = './src-tauri/target/debug/potasko';
 

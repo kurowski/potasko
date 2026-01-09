@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[command(about = "Potasko task manager CLI", long_about = None)]
 #[command(version)]
 pub struct Cli {
-    /// Database path (defaults to ~/.local/share/com.vscode.potasko/potasko.db)
+    /// Database path (defaults to ~/.local/share/net.kurowski.potasko/potasko.db)
     #[arg(long, short)]
     pub database: Option<PathBuf>,
 
