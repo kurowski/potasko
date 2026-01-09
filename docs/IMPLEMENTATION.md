@@ -1442,13 +1442,14 @@ Run `pnpm tauri dev`, add a task to a synced list, check Radicale for the new ta
 - Installed Flatpak runtimes and SDK extensions (GNOME 48, rust-stable, node22)
 - Fixed blank window issue: must use `tauri build` instead of separate `npm build` + `cargo build`
 - Tauri CLI properly embeds frontend assets during compilation
-- Changed `tauri.conf.json` to use `npm run` commands (pnpm not available in Flatpak SDK)
+- Uses pnpm via `npx pnpm` (SDK is read-only, can't install globally)
 - Added WebKitGTK permissions for dconf access
-- All builds now use online dependencies (simpler than vendored sources)
+- All builds use online dependencies (removed vendored cargo-sources.json/node-sources.json)
+- Added `default-run = "potasko-gui"` to Cargo.toml
 
 **Key Fix:**
 
-The blank window was caused by using `cargo build` directly, which doesn't embed the frontend assets properly. Using `npm run tauri build` runs the Tauri CLI which handles frontend embedding correctly.
+The blank window was caused by using `cargo build` directly, which doesn't embed the frontend assets properly. Using `pnpm tauri build` runs the Tauri CLI which handles frontend embedding correctly.
 
 **Build Instructions:**
 

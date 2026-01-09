@@ -2,6 +2,22 @@
 
 An offline-first CalDAV task manager built with Tauri 2.0, Rust, and SvelteKit.
 
+## Installation
+
+### Flatpak (Linux)
+
+```bash
+# Install from bundle (when available)
+flatpak install --user potasko.flatpak
+flatpak run net.kurowski.potasko
+```
+
+### Build from Source
+
+See [Development](#development-devcontainer) section below.
+
+---
+
 ## Development (Devcontainer)
 
 This project uses a devcontainer with all dependencies pre-installed. Open in VS Code with the Dev Containers extension or use GitHub Codespaces.
