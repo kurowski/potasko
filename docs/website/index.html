@@ -172,20 +172,20 @@
 
         .cta a {
             display: inline-block;
-            background: linear-gradient(135deg, #8b7355 0%, #a68968 100%);
-            color: white;
-            padding: 1rem 3rem;
-            border-radius: 30px;
-            text-decoration: none;
+            text-decoration: underline;
+            color: #5d4e37;
             font-size: 1.2rem;
             font-weight: 600;
-            box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, text-shadow 0.2s;
         }
 
         .cta a:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(139, 115, 85, 0.4);
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta::before {
+            content: "🥔 ";
         }
 
         footer {
@@ -289,7 +289,7 @@
         </div>
 
         <div class="cta">
-            <a href="https://github.com/kurowski/potasko" target="_blank">View on GitHub</a>
+            <a href="https://github.com/kurowski/potasko" target="_blank">Fork the potato on GitHub</a>
         </div>
 
         <footer>
