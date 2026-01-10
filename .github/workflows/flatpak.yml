@@ -106,6 +106,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build frontend
+        run: pnpm build
+
       - name: Run E2E tests
         run: xvfb-run --auto-servernum pnpm test:e2e
 
