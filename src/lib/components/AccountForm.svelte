@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { accountStore } from '$lib/stores/accounts.svelte';
   import type { Account, CalendarInfo } from '$lib/types';
 
@@ -10,18 +11,18 @@
 
   let { account = null, onClose, onSaved }: Props = $props();
 
-  // Form state
-  let name = $state(account?.name ?? '');
-  let serverUrl = $state(account?.server_url ?? '');
-  let username = $state(account?.username ?? '');
-  let password = $state(account?.password ?? '');
+  // Form state - initialized from props (untrack captures initial value only)
+  let name = $state(untrack(() => account?.name ?? ''));
+  let serverUrl = $state(untrack(() => account?.server_url ?? ''));
+  let username = $state(untrack(() => account?.username ?? ''));
+  let password = $state(untrack(() => account?.password ?? ''));
   let saving = $state(false);
 
   const isEditing = $derived(account !== null);
 
   // Discovered data from test
-  let principalUrl = $state<string | null>(account?.principal_url ?? null);
-  let calendarHomeUrl = $state<string | null>(account?.calendar_home_url ?? null);
+  let principalUrl = $state<string | null>(untrack(() => account?.principal_url ?? null));
+  let calendarHomeUrl = $state<string | null>(untrack(() => account?.calendar_home_url ?? null));
   let discoveredCalendars = $state<CalendarInfo[]>([]);
   let connectionTested = $state(false);
 
@@ -92,7 +93,9 @@
   });
 </script>
 
-<form class="account-form" onsubmit={handleSubmit} onkeydown={handleKeydown}>
+<svelte:window onkeydown={handleKeydown} />
+
+<form class="account-form" onsubmit={handleSubmit}>
   <h3>{isEditing ? 'Edit Account' : 'Add CalDAV Account'}</h3>
 
   <label class="form-field">

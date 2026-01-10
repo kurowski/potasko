@@ -10,7 +10,10 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "bundler"
-  }
+  },
+  // E2E tests run in WebdriverIO/Mocha which injects globals (browser, $, describe, etc.)
+  // at runtime - these aren't part of the app build and don't need TS checking here
+  "exclude": ["tests/e2e/**"]
   // Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
   // except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
   //

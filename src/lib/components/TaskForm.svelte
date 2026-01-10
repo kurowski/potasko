@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { listStore } from "$lib/stores/lists.svelte";
   import { taskStore } from "$lib/stores/tasks.svelte";
   import type { Task } from "$lib/types";
@@ -19,12 +20,12 @@
     { value: "FREQ=YEARLY", label: "Yearly" },
   ];
 
-  // Form state
-  let title = $state(task?.title ?? "");
-  let description = $state(task?.description ?? "");
-  let dueDate = $state(task?.due_date ? task.due_date.split("T")[0] : "");
-  let priority = $state<string>(task?.priority?.toString() ?? "");
-  let rrule = $state(task?.rrule ?? "");
+  // Form state - initialized from props (untrack captures initial value only)
+  let title = $state(untrack(() => task?.title ?? ""));
+  let description = $state(untrack(() => task?.description ?? ""));
+  let dueDate = $state(untrack(() => task?.due_date ? task.due_date.split("T")[0] : ""));
+  let priority = $state<string>(untrack(() => task?.priority?.toString() ?? ""));
+  let rrule = $state(untrack(() => task?.rrule ?? ""));
   let saving = $state(false);
 
   const isEditing = $derived(task !== null);
@@ -80,7 +81,9 @@
   }
 </script>
 
-<form class="task-form" onsubmit={handleSubmit} onkeydown={handleKeydown}>
+<svelte:window onkeydown={handleKeydown} />
+
+<form class="task-form" onsubmit={handleSubmit}>
   <input
     type="text"
     class="title-input"
