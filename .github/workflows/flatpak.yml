@@ -26,8 +26,91 @@ jobs:
 
       - run: pnpm check
 
+  rust-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y radicale libwebkit2gtk-4.1-dev libxdo-dev libayatana-appindicator3-dev
+
+      - name: Configure Radicale (no auth, temp storage)
+        run: |
+          sudo sed -i 's/^#type = denyall/type = none/' /etc/radicale/config
+          sudo sed -i 's|^#filesystem_folder = /var/lib/radicale/collections|filesystem_folder = /tmp/radicale-data|' /etc/radicale/config
+          mkdir -p /tmp/radicale-data
+
+      - name: Start Radicale
+        run: radicale &
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: Run Rust tests
+        run: cargo test
+        working-directory: src-tauri
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y radicale xvfb libwebkit2gtk-4.1-dev libxdo-dev libayatana-appindicator3-dev
+
+      - name: Configure Radicale (no auth, temp storage)
+        run: |
+          sudo sed -i 's/^#type = denyall/type = none/' /etc/radicale/config
+          sudo sed -i 's|^#filesystem_folder = /var/lib/radicale/collections|filesystem_folder = /tmp/radicale-data|' /etc/radicale/config
+          mkdir -p /tmp/radicale-data
+
+      - name: Start Radicale
+        run: radicale &
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-e2e-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: Install tauri-driver
+        run: cargo install tauri-driver
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run E2E tests
+        run: xvfb-run --auto-servernum pnpm test:e2e
+
   flatpak:
-    needs: check
+    needs: [check, rust-tests, e2e]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required to create releases
