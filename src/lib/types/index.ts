@@ -146,3 +146,15 @@ export interface ListSyncStatus {
   pending_changes: number;
   last_sync: string | null;
 }
+
+export interface SyncLogEntry {
+  id: number;
+  account_id: number | null;
+  list_id: number | null;
+  task_id: number | null;
+  operation: string;
+  status: string;
+  message: string | null;
+  http_status: number | null;
+  timestamp: string;
+}

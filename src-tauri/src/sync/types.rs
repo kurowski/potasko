@@ -141,3 +141,17 @@ impl PushTaskResult {
         }
     }
 }
+
+/// A single entry from the sync log.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncLogEntry {
+    pub id: i64,
+    pub account_id: Option<i64>,
+    pub list_id: Option<i64>,
+    pub task_id: Option<i64>,
+    pub operation: String,
+    pub status: String,
+    pub message: Option<String>,
+    pub http_status: Option<i64>,
+    pub timestamp: String,
+}

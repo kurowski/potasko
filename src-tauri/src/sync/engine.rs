@@ -50,7 +50,7 @@ impl SyncEngine {
         };
 
         // 5. Push local changes first
-        match push_changes(&self.pool, &client, list_id, &caldav_url).await {
+        match push_changes(&self.pool, &client, list_id, &caldav_url, list.account_id).await {
             Ok(push_stats) => {
                 stats.pushed_created = push_stats.created;
                 stats.pushed_updated = push_stats.updated;
@@ -63,7 +63,7 @@ impl SyncEngine {
         }
 
         // 6. Pull server changes
-        match pull_changes(&self.pool, &client, list_id, &caldav_url, list.ctag.as_deref()).await {
+        match pull_changes(&self.pool, &client, list_id, &caldav_url, list.ctag.as_deref(), list.account_id).await {
             Ok(pull_stats) => {
                 stats.pulled_created = pull_stats.created;
                 stats.pulled_updated = pull_stats.updated;
@@ -123,7 +123,7 @@ impl SyncEngine {
         };
 
         // 5. Pull only (no ctag check for initial download)
-        match pull_changes(&self.pool, &client, list_id, &caldav_url, None).await {
+        match pull_changes(&self.pool, &client, list_id, &caldav_url, None, list.account_id).await {
             Ok(pull_stats) => {
                 stats.pulled_created = pull_stats.created;
                 stats.pulled_updated = pull_stats.updated;

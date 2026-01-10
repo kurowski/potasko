@@ -3,11 +3,13 @@
   import { syncStore } from '$lib/stores/sync.svelte';
   import { listStore } from '$lib/stores/lists.svelte';
   import AccountForm from './AccountForm.svelte';
+  import SyncLogModal from './SyncLogModal.svelte';
   import type { Account } from '$lib/types';
 
   // UI state
   let showAddForm = $state(false);
   let editingAccount = $state<Account | null>(null);
+  let showSyncLog = $state(false);
 
   // Load accounts on mount
   $effect(() => {
@@ -164,6 +166,10 @@
         {/if}
       </div>
     {/if}
+
+    <button class="view-log-btn" onclick={() => showSyncLog = true}>
+      View Sync Log
+    </button>
   {/if}
 
   {#if showAddForm}
@@ -176,6 +182,10 @@
 
   {#if accountStore.error && !showAddForm && !editingAccount}
     <p class="error">{accountStore.error}</p>
+  {/if}
+
+  {#if showSyncLog}
+    <SyncLogModal onClose={() => showSyncLog = false} />
   {/if}
 </div>
 
@@ -377,5 +387,23 @@
     background: var(--priority-high-bg);
     border-radius: 6px;
     margin: 0;
+  }
+
+  .view-log-btn {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.75rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+
+  .view-log-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 </style>

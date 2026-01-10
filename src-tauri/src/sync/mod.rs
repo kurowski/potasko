@@ -7,4 +7,5 @@ mod push;
 mod types;
 
 pub use engine::SyncEngine;
-pub use types::{AccountSyncResult, PushTaskResult, SyncError, SyncResult, SyncStats};
+pub use log::get_sync_log;
+pub use types::{AccountSyncResult, PushTaskResult, SyncError, SyncLogEntry, SyncResult, SyncStats};

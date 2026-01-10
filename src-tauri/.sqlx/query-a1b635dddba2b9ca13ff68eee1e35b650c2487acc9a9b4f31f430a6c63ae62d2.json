@@ -1,0 +1,68 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT\n            id as \"id!\",\n            account_id,\n            list_id,\n            task_id,\n            operation as \"operation!\",\n            status as \"status!\",\n            message,\n            http_status,\n            timestamp as \"timestamp!\"\n        FROM sync_log\n        ORDER BY timestamp DESC\n        LIMIT ? OFFSET ?\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "id!",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "account_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "list_id",
+        "ordinal": 2,
+        "type_info": "Integer"
+      },
+      {
+        "name": "task_id",
+        "ordinal": 3,
+        "type_info": "Integer"
+      },
+      {
+        "name": "operation!",
+        "ordinal": 4,
+        "type_info": "Text"
+      },
+      {
+        "name": "status!",
+        "ordinal": 5,
+        "type_info": "Text"
+      },
+      {
+        "name": "message",
+        "ordinal": 6,
+        "type_info": "Text"
+      },
+      {
+        "name": "http_status",
+        "ordinal": 7,
+        "type_info": "Integer"
+      },
+      {
+        "name": "timestamp!",
+        "ordinal": 8,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 2
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "a1b635dddba2b9ca13ff68eee1e35b650c2487acc9a9b4f31f430a6c63ae62d2"
+}

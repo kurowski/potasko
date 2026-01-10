@@ -1,6 +1,6 @@
 //! Tauri commands for sync operations.
 
-use crate::sync::{AccountSyncResult, SyncEngine, SyncResult};
+use crate::sync::{get_sync_log, AccountSyncResult, SyncEngine, SyncLogEntry, SyncResult};
 use crate::DbState;
 use sqlx::SqlitePool;
 use tauri::State;
@@ -78,4 +78,17 @@ pub struct ListSyncStatus {
     pub has_caldav: bool,
     pub pending_changes: u32,
     pub last_sync: Option<String>,
+}
+
+/// Get sync log entries with pagination.
+#[tauri::command]
+pub async fn get_sync_log_entries(
+    limit: Option<u32>,
+    offset: Option<u32>,
+    db: State<'_, DbState>,
+) -> Result<Vec<SyncLogEntry>, String> {
+    let pool = pool_from_state(&db);
+    get_sync_log(&pool, limit.unwrap_or(50), offset.unwrap_or(0))
+        .await
+        .map_err(|e| e.to_string())
 }

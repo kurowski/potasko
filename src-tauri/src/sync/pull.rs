@@ -8,6 +8,7 @@ use crate::caldav::{parse_vtodo, CalDavClient};
 use crate::core::tasks as core_tasks;
 use crate::models::SyncStatus;
 
+use super::log::log_sync_operation;
 use super::types::{PullStats, SyncError};
 
 /// Pull changes from the server.
@@ -17,6 +18,7 @@ pub async fn pull_changes(
     list_id: i64,
     calendar_url: &str,
     current_ctag: Option<&str>,
+    account_id: Option<i64>,
 ) -> Result<PullStats, SyncError> {
     let mut stats = PullStats::default();
 
@@ -69,6 +71,17 @@ pub async fn pull_changes(
             if task.sync_status == SyncStatus::Synced {
                 core_tasks::hard_delete_task(task.id, pool).await?;
                 stats.deleted += 1;
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "pull_delete",
+                    "success",
+                    None,
+                    None,
+                )
+                .await;
             }
         }
     }
@@ -83,7 +96,19 @@ pub async fn pull_changes(
                 let parsed = match parse_vtodo(&ical) {
                     Ok(p) => p,
                     Err(e) => {
-                        eprintln!("Failed to parse VTODO from {}: {}", resource.href, e);
+                        let msg = format!("Failed to parse VTODO from {}: {}", resource.href, e);
+                        eprintln!("{}", msg);
+                        let _ = log_sync_operation(
+                            pool,
+                            account_id,
+                            Some(list_id),
+                            None,
+                            "pull_parse_error",
+                            "error",
+                            Some(&msg),
+                            None,
+                        )
+                        .await;
                         continue;
                     }
                 };
@@ -93,6 +118,7 @@ pub async fn pull_changes(
 
                 if local_tasks.contains_key(&resource.href) {
                     // Update existing
+                    let task_id = local_tasks.get(&resource.href).map(|t| t.id);
                     core_tasks::update_task_by_href_from_server(
                         &resource.href,
                         parsed.title(),
@@ -108,6 +134,17 @@ pub async fn pull_changes(
                     )
                     .await?;
                     stats.updated += 1;
+                    let _ = log_sync_operation(
+                        pool,
+                        account_id,
+                        Some(list_id),
+                        task_id,
+                        "pull_update",
+                        "success",
+                        None,
+                        None,
+                    )
+                    .await;
                 } else {
                     // Create new
                     let fallback_uid = uuid::Uuid::new_v4().to_string();
@@ -129,6 +166,17 @@ pub async fn pull_changes(
                     )
                     .await?;
                     stats.created += 1;
+                    let _ = log_sync_operation(
+                        pool,
+                        account_id,
+                        Some(list_id),
+                        None,
+                        "pull_create",
+                        "success",
+                        None,
+                        None,
+                    )
+                    .await;
                 }
             }
         }

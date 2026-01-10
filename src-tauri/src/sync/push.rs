@@ -6,6 +6,7 @@ use crate::caldav::{build_vtodo, CalDavClient, CalDavError, VTodoBuildData};
 use crate::core::tasks as core_tasks;
 use crate::models::{SyncStatus, Task};
 
+use super::log::log_sync_operation;
 use super::types::{PushStats, SyncError};
 
 /// Push all pending local changes to the server.
@@ -14,6 +15,7 @@ pub async fn push_changes(
     client: &CalDavClient,
     list_id: i64,
     calendar_url: &str,
+    account_id: Option<i64>,
 ) -> Result<PushStats, SyncError> {
     let mut stats = PushStats::default();
 
@@ -45,18 +47,80 @@ pub async fn push_changes(
         };
 
         match result {
-            Ok(PushAction::Created) => stats.created += 1,
-            Ok(PushAction::Updated) => stats.updated += 1,
-            Ok(PushAction::Deleted) => stats.deleted += 1,
+            Ok(PushAction::Created) => {
+                stats.created += 1;
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "push_create",
+                    "success",
+                    None,
+                    None,
+                )
+                .await;
+            }
+            Ok(PushAction::Updated) => {
+                stats.updated += 1;
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "push_update",
+                    "success",
+                    None,
+                    None,
+                )
+                .await;
+            }
+            Ok(PushAction::Deleted) => {
+                stats.deleted += 1;
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "push_delete",
+                    "success",
+                    None,
+                    None,
+                )
+                .await;
+            }
             Err(SyncError::CalDav(CalDavError::Conflict)) => {
                 // Server has newer version - fetch and overwrite local (server-wins)
                 if let Err(e) = handle_conflict(pool, client, &task).await {
                     eprintln!("Failed to resolve conflict for task {}: {}", task.id, e);
                 }
                 stats.conflicts += 1;
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "push_conflict",
+                    "conflict",
+                    Some("Server has newer version"),
+                    None,
+                )
+                .await;
             }
             Err(e) => {
-                eprintln!("Failed to push task {}: {}", task.id, e);
+                let msg = e.to_string();
+                eprintln!("Failed to push task {}: {}", task.id, msg);
+                let _ = log_sync_operation(
+                    pool,
+                    account_id,
+                    Some(list_id),
+                    Some(task.id),
+                    "push_error",
+                    "error",
+                    Some(&msg),
+                    None,
+                )
+                .await;
             }
         }
     }

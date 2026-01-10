@@ -108,6 +108,7 @@ import type {
   SyncResult,
   AccountSyncResult,
   ListSyncStatus,
+  SyncLogEntry,
 } from '$lib/types';
 
 export async function syncList(listId: number): Promise<SyncResult> {
@@ -124,4 +125,8 @@ export async function initialDownload(listId: number): Promise<SyncResult> {
 
 export async function getSyncStatus(listId: number): Promise<ListSyncStatus> {
   return invoke('get_sync_status', { listId });
+}
+
+export async function getSyncLog(limit?: number, offset?: number): Promise<SyncLogEntry[]> {
+  return invoke('get_sync_log_entries', { limit, offset });
 }
