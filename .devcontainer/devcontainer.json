@@ -1,8 +1,6 @@
 {
   "name": "Potasko",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "image": "ghcr.io/kurowski/potasko/devcontainer:latest",
 
   "runArgs": [
     "--privileged",
