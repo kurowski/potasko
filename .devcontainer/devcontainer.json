@@ -47,6 +47,7 @@
   },
   "mounts": [
     "source=claude-credentials,target=/home/vscode/.claude,type=volume",
+    "source=gh-credentials,target=/home/vscode/.config/gh,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/home/vscode/.android,type=bind,consistency=cached",
     "source=${localEnv:XDG_RUNTIME_DIR}/wayland-0,target=/tmp/wayland-0,type=bind"
   ],
@@ -63,5 +64,6 @@
     }
   },
 
+  "onCreateCommand": ".devcontainer/onCreate.sh",
   "postStartCommand": ".devcontainer/onStart.sh"
 }
