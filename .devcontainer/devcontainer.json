@@ -42,12 +42,14 @@
     "ANDROID_HOME": "/opt/android-sdk",
     "ANDROID_SDK_ROOT": "/opt/android-sdk"
   },
-
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
   "mounts": [
+    "source=claude-credentials,target=/home/vscode/.claude,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.android,target=/home/vscode/.android,type=bind,consistency=cached",
     "source=${localEnv:XDG_RUNTIME_DIR}/wayland-0,target=/tmp/wayland-0,type=bind"
   ],
-
   "forwardPorts": [1420, 8080, 3000, 5232],
 
   "portsAttributes": {
