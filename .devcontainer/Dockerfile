@@ -1,5 +1,8 @@
 FROM mcr.microsoft.com/devcontainers/rust:latest
 
+# Link image to repository for GHCR permissions
+LABEL org.opencontainers.image.source=https://github.com/kurowski/potasko
+
 # Install Node.js 24
 RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
   && apt-get install -y nodejs
