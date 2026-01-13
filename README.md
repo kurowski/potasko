@@ -154,7 +154,13 @@ sudo service radicale restart
 
 ## Building Flatpak
 
-Build the Flatpak package from source:
+First, install the Flatpak development tools (only needed once):
+
+```bash
+scripts/setup-flatpak.sh
+```
+
+Then build the Flatpak package:
 
 ```bash
 # Build and export to local repo
