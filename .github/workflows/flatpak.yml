@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}/devcontainer:latest
-      options: --privileged
+      options: --privileged --user root
     steps:
       - uses: actions/checkout@v6
 
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository }}/devcontainer:latest
-      options: --privileged
+      options: --privileged --user root
     steps:
       - uses: actions/checkout@v6
 
