@@ -61,6 +61,28 @@ export const config = {
     console.log('Starting Radicale...');
     spawnSync('sudo', ['service', 'radicale', 'start'], { stdio: 'inherit' });
 
+    // Create a test calendar on Radicale for sync tests
+    console.log('Creating test calendar on Radicale...');
+    const calendarXml = `<?xml version="1.0" encoding="UTF-8"?>
+<mkcalendar xmlns="urn:ietf:params:xml:ns:caldav">
+  <set xmlns="DAV:">
+    <prop>
+      <displayname>Test Tasks</displayname>
+      <supported-calendar-component-set xmlns="urn:ietf:params:xml:ns:caldav">
+        <comp name="VTODO"/>
+      </supported-calendar-component-set>
+    </prop>
+  </set>
+</mkcalendar>`;
+    const mkCalResult = spawnSync('curl', [
+      '-s', '-X', 'MKCALENDAR',
+      '-u', 'test:test',
+      '-H', 'Content-Type: application/xml',
+      '-d', calendarXml,
+      'http://localhost:5232/test/tasks/'
+    ], { stdio: 'pipe' });
+    console.log('Calendar creation result:', mkCalResult.status === 0 ? 'success' : 'failed');
+
     // Then start tauri-driver
     console.log('Starting tauri-driver...');
     tauriDriver = spawn('tauri-driver', [], {
