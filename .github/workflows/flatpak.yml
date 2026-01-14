@@ -31,6 +31,9 @@ jobs:
     container:
       image: ghcr.io/${{ github.repository }}/devcontainer:latest
       options: --privileged --user root
+    env:
+      # Reduce memory usage during linking to avoid OOM/bus errors on CI
+      CARGO_BUILD_JOBS: 2
     steps:
       - uses: actions/checkout@v6
 
