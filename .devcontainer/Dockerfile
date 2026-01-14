@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
   radicale \
   webkitgtk-webdriver \
   xdg-utils \
+  xvfb \
   && rm -rf /var/lib/apt/lists/*
 
 # Configure Radicale for development (no auth, use /tmp for storage)
