@@ -262,6 +262,10 @@
     transform: translateX(0);
   }
 
+  .sidebar.mobile .sidebar-header {
+    padding-top: calc(1rem + env(safe-area-inset-top, 0));
+  }
+
   .mobile-close-header {
     display: flex;
     justify-content: space-between;

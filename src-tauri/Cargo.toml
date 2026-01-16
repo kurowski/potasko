@@ -44,10 +44,9 @@ uuid = { version = "1", features = ["v4", "serde"] }
 thiserror = "2"
 
 # HTTP client (for CalDAV)
-# Use rustls with ring backend for Android compatibility (aws-lc-rs doesn't cross-compile)
-reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider"] }
-# Provide ring as the crypto backend (ring supports Android cross-compilation, aws-lc-rs doesn't)
-rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+# Use rustls-tls-webpki-roots to bundle Mozilla's root certificates
+# This avoids platform-specific TLS complexity while working on Android
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls-webpki-roots"] }
 
 # XML parsing (for CalDAV)
 quick-xml = "0.38"
@@ -66,7 +65,6 @@ rrule = "0.14"
 assert_cmd = "2.0"
 predicates = "3.1"
 tempfile = "3"
-reqwest = { version = "0.13", default-features = false, features = ["blocking", "rustls-no-provider"] }
-rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls-webpki-roots"] }
 uuid = { version = "1", features = ["v4"] }
 

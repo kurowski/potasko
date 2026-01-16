@@ -10,6 +10,7 @@
 
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
+  let showMobileForm = $state(false);
 
   // Mobile responsiveness state
   const MOBILE_BREAKPOINT = 768;
@@ -70,14 +71,23 @@
 
   function handleEditTask(task: Task) {
     editingTask = task;
+    if (isMobile) {
+      showMobileForm = true;
+    }
   }
 
   function handleCloseEdit() {
     editingTask = null;
+    showMobileForm = false;
   }
 
   function handleToggleSettings() {
     showSettings = !showSettings;
+  }
+
+  function handleFabClick() {
+    editingTask = null;
+    showMobileForm = true;
   }
 </script>
 
@@ -116,9 +126,12 @@
     {:else if listStore.selectedView}
       <TaskListView onEditTask={handleEditTask} />
       {#if canAddTasks}
-        {#key editingTask?.id}
-          <TaskForm task={editingTask} onClose={handleCloseEdit} />
-        {/key}
+        {#if !isMobile}
+          <!-- Desktop: inline form -->
+          {#key editingTask?.id}
+            <TaskForm task={editingTask} onClose={handleCloseEdit} />
+          {/key}
+        {/if}
       {/if}
     {:else if listStore.loading}
       <div class="loading-state">Loading...</div>
@@ -129,6 +142,38 @@
       </div>
     {/if}
   </main>
+
+  <!-- Mobile: FAB and modal form -->
+  {#if isMobile && canAddTasks && !showSettings}
+    {#if showMobileForm}
+      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+      <div class="form-modal-backdrop" onclick={handleCloseEdit}>
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <div class="form-modal" onclick={(e) => e.stopPropagation()}>
+          <div class="form-modal-handle"></div>
+          <div class="form-modal-header">
+            <span>{editingTask ? 'Edit Task' : 'New Task'}</span>
+            <button class="form-modal-close" onclick={handleCloseEdit} aria-label="Close">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+          {#key editingTask?.id}
+            <TaskForm task={editingTask} onClose={handleCloseEdit} />
+          {/key}
+        </div>
+      </div>
+    {:else}
+      <button class="fab" onclick={handleFabClick} aria-label="Add task">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    {/if}
+  {/if}
 </div>
 
 <style>
@@ -175,5 +220,114 @@
     .settings-panel {
       padding: 1rem;
     }
+  }
+
+  /* Floating Action Button */
+  .fab {
+    position: fixed;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
+    right: 1.5rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    z-index: 100;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  .fab:active {
+    transform: scale(0.95);
+  }
+
+  .fab svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Mobile form modal */
+  .form-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .form-modal {
+    width: 100%;
+    background: var(--bg-primary);
+    border-radius: 16px 16px 0 0;
+    animation: slideUp 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .form-modal-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin: 8px auto;
+  }
+
+  .form-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem 0.5rem;
+    font-weight: 600;
+  }
+
+  .form-modal-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 50%;
+  }
+
+  .form-modal-close:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .form-modal-close svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Remove TaskForm border when in modal */
+  .form-modal :global(.task-form) {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
 </style>

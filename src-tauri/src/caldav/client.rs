@@ -1,19 +1,9 @@
 use reqwest::{Client, Response, StatusCode};
-use std::sync::Once;
 use thiserror::Error;
 
 use super::discovery;
 use super::types::{AccountTestResult, CalendarInfo, PutResponse, ResourceData, ResourceMeta};
 use super::xml;
-
-// Install ring crypto provider once (required for rustls-no-provider feature)
-static CRYPTO_PROVIDER: Once = Once::new();
-
-fn ensure_crypto_provider() {
-    CRYPTO_PROVIDER.call_once(|| {
-        let _ = rustls::crypto::ring::default_provider().install_default();
-    });
-}
 
 #[derive(Error, Debug)]
 pub enum CalDavError {
@@ -49,9 +39,6 @@ pub struct CalDavClient {
 impl CalDavClient {
     /// Create a new CalDAV client.
     pub fn new(base_url: impl Into<String>, username: impl Into<String>, password: impl Into<String>) -> Result<Self> {
-        // Ensure crypto provider is installed before creating HTTP client
-        ensure_crypto_provider();
-
         let http = Client::builder()
             .redirect(reqwest::redirect::Policy::none()) // Handle redirects manually for well-known
             .build()?;
