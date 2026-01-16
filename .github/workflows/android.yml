@@ -25,22 +25,23 @@ jobs:
         run: pnpm build
 
       - name: Build Android APK (debug)
-        run: cargo tauri android build --debug
+        # Build only for arm64 to save disk space in CI
+        run: cargo tauri android build --debug --target aarch64
 
       - name: Verify 16KB page alignment
         run: |
           $ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 \
-            src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk \
+            src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk \
             | grep -E "(FAILED|Verification)"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: potasko-debug-apk
-          path: src-tauri/gen/android/app/build/outputs/apk/universal/debug/*.apk
+          path: src-tauri/gen/android/app/build/outputs/apk/arm64/debug/*.apk
 
       - name: Upload debug AAB
         uses: actions/upload-artifact@v4
         with:
           name: potasko-debug-aab
-          path: src-tauri/gen/android/app/build/outputs/bundle/universalDebug/*.aab
+          path: src-tauri/gen/android/app/build/outputs/bundle/arm64Debug/*.aab
