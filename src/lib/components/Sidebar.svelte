@@ -6,9 +6,20 @@
   interface Props {
     showSettings?: boolean;
     onToggleSettings?: () => void;
+    isMobile?: boolean;
+    isOpen?: boolean;
+    onClose?: () => void;
   }
 
-  let { showSettings = false, onToggleSettings }: Props = $props();
+  let { showSettings = false, onToggleSettings, isMobile = false, isOpen = false, onClose }: Props = $props();
+
+  // Close sidebar when a navigation item is selected on mobile
+  function handleNavigation(action: () => void) {
+    action();
+    if (isMobile && onClose) {
+      onClose();
+    }
+  }
 
   // Predefined color palette
   const COLORS = [
@@ -75,7 +86,19 @@
   }
 </script>
 
-<aside class="sidebar">
+<aside class="sidebar" class:mobile={isMobile} class:open={isOpen}>
+  {#if isMobile}
+    <div class="sidebar-header mobile-close-header">
+      <h2>Menu</h2>
+      <button class="close-btn" onclick={onClose} aria-label="Close menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  {/if}
+
   <div class="sidebar-header">
     <h2>Views</h2>
   </div>
@@ -84,7 +107,7 @@
     <button
       class="special-item"
       class:selected={listStore.selectedSpecialView === 'today'}
-      onclick={() => listStore.selectSpecial('today')}
+      onclick={() => handleNavigation(() => listStore.selectSpecial('today'))}
     >
       <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
@@ -94,7 +117,7 @@
     <button
       class="special-item"
       class:selected={listStore.selectedSpecialView === 'overdue'}
-      onclick={() => listStore.selectSpecial('overdue')}
+      onclick={() => handleNavigation(() => listStore.selectSpecial('overdue'))}
     >
       <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
         <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
@@ -176,7 +199,7 @@
           <button
             type="button"
             class="list-name-btn"
-            onclick={() => listStore.select(list.id)}
+            onclick={() => handleNavigation(() => listStore.select(list.id))}
           >
             {list.name}
           </button>
@@ -201,7 +224,7 @@
     <button
       class="settings-btn"
       class:active={showSettings}
-      onclick={onToggleSettings}
+      onclick={() => handleNavigation(() => onToggleSettings?.())}
     >
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -218,7 +241,53 @@
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
+  }
+
+  /* Mobile drawer styles */
+  .sidebar.mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100%;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    border-right: none;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar.mobile.open {
+    transform: translateX(0);
+  }
+
+  .mobile-close-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    border-radius: 8px;
+  }
+
+  .close-btn:hover {
+    background: var(--bg-hover);
+  }
+
+  .close-btn svg {
+    width: 24px;
+    height: 24px;
   }
 
   .sidebar-header {

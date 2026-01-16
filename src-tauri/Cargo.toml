@@ -1,6 +1,6 @@
 [package]
 name = "potasko-gui"
-version = "0.1.0"
+version = "0.3.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -44,7 +44,10 @@ uuid = { version = "1", features = ["v4", "serde"] }
 thiserror = "2"
 
 # HTTP client (for CalDAV)
-reqwest = "0.13"
+# Use rustls with ring backend for Android compatibility (aws-lc-rs doesn't cross-compile)
+reqwest = { version = "0.13", default-features = false, features = ["rustls-no-provider"] }
+# Provide ring as the crypto backend (ring supports Android cross-compilation, aws-lc-rs doesn't)
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 
 # XML parsing (for CalDAV)
 quick-xml = "0.38"
@@ -63,6 +66,6 @@ rrule = "0.14"
 assert_cmd = "2.0"
 predicates = "3.1"
 tempfile = "3"
-reqwest = { version = "0.13", features = ["blocking"] }
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "rustls-no-provider"] }
 uuid = { version = "1", features = ["v4"] }
 

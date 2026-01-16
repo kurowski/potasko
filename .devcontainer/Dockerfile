@@ -9,6 +9,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
 
 # Install system dependencies for Tauri desktop and Android development
 RUN apt-get update && apt-get install -y \
+  cmake \
   gh \
   openjdk-21-jdk \
   libwebkit2gtk-4.1-dev \
@@ -43,15 +44,17 @@ RUN mkdir -p $ANDROID_HOME/cmdline-tools \
   && rm commandlinetools-linux-*_latest.zip
 
 # Accept Android licenses and install SDK components
+# NDK 28+ required for Android 15 16KB page alignment
 RUN yes | sdkmanager --licenses || true \
   && sdkmanager "platform-tools" \
   && sdkmanager "platforms;android-35" \
   && sdkmanager "build-tools;35.0.0" \
-  && LATEST_NDK=$(sdkmanager --list | grep "ndk;" | grep -v "ndk-bundle" | head -1 | awk '{print $1}') \
-  && sdkmanager "$LATEST_NDK"
+  && sdkmanager "ndk;28.2.13676358"
 
-# Set NDK_HOME dynamically to the installed version (Tauri's recommended approach)
-RUN echo 'export NDK_HOME="$ANDROID_HOME/ndk/$(ls -1 $ANDROID_HOME/ndk)"' >> /etc/profile.d/android-ndk.sh
+# Set NDK environment variables
+ENV NDK_HOME=$ANDROID_HOME/ndk/28.2.13676358
+ENV ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/28.2.13676358
+ENV ANDROID_NDK=$ANDROID_HOME/ndk/28.2.13676358
 
 # Switch to vscode user for Rust installations
 USER vscode

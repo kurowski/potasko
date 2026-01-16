@@ -11,9 +11,46 @@
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
 
+  // Mobile responsiveness state
+  const MOBILE_BREAKPOINT = 768;
+  let isMobile = $state(false);
+  let sidebarOpen = $state(false);
+
+  function checkMobile() {
+    const wasMobile = isMobile;
+    isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    // Close sidebar when switching to desktop mode
+    if (wasMobile && !isMobile) {
+      sidebarOpen = false;
+    }
+  }
+
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+  }
+
+  function closeSidebar() {
+    sidebarOpen = false;
+  }
+
+  // Get current view title for mobile header
+  const currentViewTitle = $derived(() => {
+    if (showSettings) return 'Settings';
+    const view = listStore.selectedView;
+    if (!view) return 'Potasko';
+    if (view.type === 'special') {
+      return view.view === 'today' ? 'Today' : 'Overdue';
+    }
+    const list = listStore.lists.find(l => l.id === view.id);
+    return list?.name ?? 'Tasks';
+  });
+
   // Load lists on mount
   onMount(() => {
     listStore.load();
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   });
 
   // Load tasks when selected view changes
@@ -44,8 +81,32 @@
   }
 </script>
 
-<div class="app-layout">
-  <Sidebar {showSettings} onToggleSettings={handleToggleSettings} />
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+<div class="app-layout" class:mobile={isMobile}>
+  {#if isMobile}
+    <header class="mobile-header">
+      <button class="hamburger-btn" onclick={toggleSidebar} aria-label="Toggle menu">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <h1>{currentViewTitle()}</h1>
+    </header>
+  {/if}
+
+  <Sidebar
+    {showSettings}
+    onToggleSettings={handleToggleSettings}
+    {isMobile}
+    isOpen={sidebarOpen}
+    onClose={closeSidebar}
+  />
+
+  {#if isMobile && sidebarOpen}
+    <div class="backdrop visible" onclick={closeSidebar}></div>
+  {/if}
 
   <main class="main-content">
     {#if showSettings}
@@ -73,8 +134,12 @@
 <style>
   .app-layout {
     display: flex;
-    height: 100vh;
+    height: 100%;
     overflow: hidden;
+  }
+
+  .app-layout.mobile {
+    flex-direction: column;
   }
 
   .main-content {
@@ -82,6 +147,7 @@
     display: flex;
     flex-direction: column;
     min-width: 0;
+    min-height: 0;
   }
 
   .loading-state,
@@ -103,5 +169,11 @@
     padding: 1.5rem;
     overflow-y: auto;
     background: var(--bg-primary);
+  }
+
+  @media (max-width: 768px) {
+    .settings-panel {
+      padding: 1rem;
+    }
   }
 </style>

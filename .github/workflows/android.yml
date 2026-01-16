@@ -1,0 +1,46 @@
+name: Android
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/devcontainer:latest
+      options: --privileged --user root
+    env:
+      # Reduce memory usage during linking to avoid OOM/bus errors on CI
+      CARGO_BUILD_JOBS: 2
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm build
+
+      - name: Build Android APK (debug)
+        run: cargo tauri android build --debug
+
+      - name: Verify 16KB page alignment
+        run: |
+          $ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 \
+            src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk \
+            | grep -E "(FAILED|Verification)"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: potasko-debug-apk
+          path: src-tauri/gen/android/app/build/outputs/apk/universal/debug/*.apk
+
+      - name: Upload debug AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: potasko-debug-aab
+          path: src-tauri/gen/android/app/build/outputs/bundle/universalDebug/*.aab

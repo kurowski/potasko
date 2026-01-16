@@ -1,0 +1,14 @@
+# Android 15+ requires 16KB page size alignment for native libraries
+# See: https://developer.android.com/guide/practices/page-sizes
+
+[target.aarch64-linux-android]
+rustflags = ["-C", "link-args=-Wl,-z,max-page-size=16384"]
+
+[target.armv7-linux-androideabi]
+rustflags = ["-C", "link-args=-Wl,-z,max-page-size=16384"]
+
+[target.x86_64-linux-android]
+rustflags = ["-C", "link-args=-Wl,-z,max-page-size=16384"]
+
+[target.i686-linux-android]
+rustflags = ["-C", "link-args=-Wl,-z,max-page-size=16384"]

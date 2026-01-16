@@ -84,7 +84,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
   }
 
@@ -161,5 +162,17 @@
 
   .empty-state .hint {
     font-size: 0.875rem;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .list-header {
+      display: none; /* Title shown in mobile header */
+    }
+
+    .tasks-container {
+      padding: 0.75rem 1rem;
+      padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+    }
   }
 </style>

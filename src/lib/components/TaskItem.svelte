@@ -246,4 +246,33 @@
     width: 18px;
     height: 18px;
   }
+
+  /* Mobile touch target improvements */
+  @media (max-width: 768px) {
+    .task-item {
+      padding: 0.5rem;
+    }
+
+    .checkbox {
+      width: 44px;
+      height: 44px;
+      margin-top: 0;
+    }
+
+    .checkbox svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .delete-btn {
+      width: 44px;
+      height: 44px;
+      opacity: 1; /* Always visible on mobile */
+    }
+
+    .delete-btn svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
 </style>

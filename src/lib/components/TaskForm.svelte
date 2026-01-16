@@ -280,4 +280,35 @@
   .form-actions button:not(.primary):hover {
     background: var(--bg-hover);
   }
+
+  /* Mobile adjustments */
+  @media (max-width: 768px) {
+    .task-form {
+      padding: 1rem;
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+    }
+
+    .form-row {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .form-field input,
+    .form-field select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      min-height: 44px;
+    }
+
+    .title-input {
+      padding: 0.75rem;
+      font-size: 1rem;
+      min-height: 44px;
+    }
+
+    .form-actions button {
+      padding: 0.75rem 1.25rem;
+      min-height: 44px;
+    }
+  }
 </style>
