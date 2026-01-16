@@ -19,3 +19,9 @@ build-dir/
 .flatpak-builder/
 repo/
 *.flatpak
+
+# Android signing
+*.jks
+*.keystore
+keystore.properties
+*.jks.b64
