@@ -30,18 +30,19 @@ jobs:
 
       - name: Verify 16KB page alignment
         run: |
-          $ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 \
-            src-tauri/gen/android/app/build/outputs/apk/arm64/debug/app-arm64-debug.apk \
+          APK=$(find src-tauri/gen/android -name "*.apk" -path "*/debug/*" | head -1)
+          echo "Found APK: $APK"
+          $ANDROID_HOME/build-tools/35.0.0/zipalign -c -P 16 -v 4 "$APK" \
             | grep -E "(FAILED|Verification)"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: potasko-debug-apk
-          path: src-tauri/gen/android/app/build/outputs/apk/arm64/debug/*.apk
+          path: src-tauri/gen/android/app/build/outputs/apk/**/debug/*.apk
 
       - name: Upload debug AAB
         uses: actions/upload-artifact@v4
         with:
           name: potasko-debug-aab
-          path: src-tauri/gen/android/app/build/outputs/bundle/arm64Debug/*.aab
+          path: src-tauri/gen/android/app/build/outputs/bundle/**Debug/*.aab
