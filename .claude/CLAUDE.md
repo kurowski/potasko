@@ -34,3 +34,11 @@ Skipping step 2 creates "works on my machine" problems for other developers and 
 
 - Linux: Flatpak (for Flathub distribution)
 - Flatpak manifest: `net.kurowski.potasko.yml`
+
+### Releases
+
+**Keep release tags and app version numbers in sync.** Before tagging a release (e.g., `v0.3.1`), update the version in:
+
+1. `src-tauri/tauri.conf.json` (primary - also generates Android version on build)
+2. `src-tauri/Cargo.toml`
+3. `package.json`

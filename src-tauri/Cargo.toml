@@ -1,6 +1,6 @@
 [package]
 name = "potasko-gui"
-version = "0.3.0"
+version = "0.3.2"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
