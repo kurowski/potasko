@@ -8,8 +8,20 @@
 use assert_cmd::Command;
 use reqwest::blocking::Client;
 use std::path::PathBuf;
+use std::sync::Once;
 use tempfile::TempDir;
 use uuid::Uuid;
+
+// Install ring crypto provider once for all tests (required for rustls-no-provider)
+static CRYPTO_PROVIDER: Once = Once::new();
+
+fn ensure_crypto_provider() {
+    CRYPTO_PROVIDER.call_once(|| {
+        rustls::crypto::ring::default_provider()
+            .install_default()
+            .expect("Failed to install crypto provider");
+    });
+}
 
 /// Radicale server configuration for tests.
 pub const RADICALE_URL: &str = "http://localhost:5232";
@@ -27,6 +39,9 @@ pub struct TestContext {
 impl TestContext {
     /// Create a new test context with isolated database and unique calendar.
     pub fn new() -> Self {
+        // Ensure crypto provider is installed before creating any HTTP clients
+        ensure_crypto_provider();
+
         let db_dir = TempDir::new().expect("Failed to create temp dir");
         let db_path = db_dir.path().join("test.db");
         let calendar_name = format!("test-{}", Uuid::new_v4());
