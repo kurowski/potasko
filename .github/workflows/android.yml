@@ -48,7 +48,7 @@ jobs:
         run: |
           if [ -f "/tmp/potasko-release.jks" ]; then
             echo "Building signed release APK"
-            cargo tauri android build --release --target aarch64
+            cargo tauri android build --target aarch64
           else
             echo "Building debug APK (no keystore available)"
             cargo tauri android build --debug --target aarch64
