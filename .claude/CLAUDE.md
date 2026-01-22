@@ -42,3 +42,7 @@ Skipping step 2 creates "works on my machine" problems for other developers and 
 1. `src-tauri/tauri.conf.json` (primary - also generates Android version on build)
 2. `src-tauri/Cargo.toml`
 3. `package.json`
+
+**Write release notes for every release.** After CI builds complete, update the release notes using `gh release edit`. Include:
+- Summary of user-facing changes
+- Link to full changelog (e.g., `https://github.com/kurowski/potasko/compare/v0.3.3...v0.3.4`)
