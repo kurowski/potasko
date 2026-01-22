@@ -13,6 +13,15 @@ val tauriProperties = Properties().apply {
     }
 }
 
+// Load keystore properties for release signing
+val keystorePropertiesFile = file("keystore.properties")
+val keystoreProperties = Properties()
+val useKeystoreFile = keystorePropertiesFile.exists()
+
+if (useKeystoreFile) {
+    keystoreProperties.load(keystorePropertiesFile.inputStream())
+}
+
 android {
     compileSdk = 36
     namespace = "net.kurowski.potasko"
@@ -24,6 +33,29 @@ android {
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
     }
+
+    // Signing configuration for release builds
+    signingConfigs {
+        create("release") {
+            if (useKeystoreFile) {
+                // Local build: use keystore.properties file
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            } else {
+                // CI build: use environment variables
+                val keystorePath = System.getenv("KEYSTORE_PATH")
+                if (keystorePath != null) {
+                    storeFile = file(keystorePath)
+                    storePassword = System.getenv("KEYSTORE_PASSWORD")
+                    keyAlias = System.getenv("KEY_ALIAS")
+                    keyPassword = System.getenv("KEY_PASSWORD")
+                }
+            }
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
@@ -37,6 +69,10 @@ android {
             }
         }
         getByName("release") {
+            // Use release signing config if available
+            if (useKeystoreFile || System.getenv("KEYSTORE_PATH") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

@@ -83,8 +83,15 @@ jobs:
           upload-artifact: true
           cache-key: flatpak-builder-${{ hashFiles('pnpm-lock.yaml', 'src-tauri/Cargo.lock') }}
 
+      - name: Rename Flatpak for release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mv potasko.flatpak "potasko-${VERSION}.flatpak"
+          echo "Renamed to potasko-${VERSION}.flatpak"
+
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: potasko.flatpak
+          files: potasko-*.flatpak
