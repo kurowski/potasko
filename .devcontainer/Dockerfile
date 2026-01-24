@@ -89,6 +89,9 @@ USER root
 # Install Node.js package managers
 RUN npm install -g pnpm yarn
 
+# Install TypeScript Language Server and TypeScript
+RUN npm install -g typescript-language-server typescript
+
 # Ensure vscode user owns Android SDK
 RUN chown -R vscode:vscode $ANDROID_HOME
 
