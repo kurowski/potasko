@@ -25,6 +25,7 @@ pub struct ParsedVTodo {
     pub completed_at: Option<DateTime<Utc>>,
     pub rrule: Option<String>,
     /// Raw iCalendar string for round-trip preservation.
+    #[allow(dead_code)]
     pub raw_icalendar: String,
 }
 
