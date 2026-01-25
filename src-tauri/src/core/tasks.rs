@@ -449,7 +449,6 @@ pub(crate) fn parse_datetime_opt(s: &str) -> Option<chrono::DateTime<Utc>> {
 
 /// Get tasks that need to be pushed to the server.
 /// Returns tasks where local_version > synced_version OR sync_status = 'deleted'.
-/// Excludes tasks in backoff period (sync_retry_after > now).
 pub async fn get_pending_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Task>> {
     let rows = sqlx::query_as!(
         TaskRow,
@@ -478,7 +477,6 @@ pub async fn get_pending_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Ta
         FROM tasks
         WHERE list_id = ?
           AND (local_version > synced_version OR sync_status = 'deleted')
-          AND (sync_retry_after IS NULL OR sync_retry_after <= datetime('now'))
         "#,
         list_id
     )
@@ -749,22 +747,6 @@ pub async fn clear_task_sync_error(id: i64, pool: &SqlitePool) -> Result<()> {
         WHERE id = ?
         "#,
         id
-    )
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
-
-/// Clear sync retry backoff for all failed tasks in a list (for force retry).
-pub async fn clear_list_sync_retry(list_id: i64, pool: &SqlitePool) -> Result<()> {
-    sqlx::query!(
-        r#"
-        UPDATE tasks
-        SET sync_retry_after = NULL
-        WHERE list_id = ? AND last_sync_error IS NOT NULL
-        "#,
-        list_id
     )
     .execute(pool)
     .await?;

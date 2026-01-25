@@ -86,23 +86,6 @@ pub async fn get_sync_status(list_id: i64, db: State<'_, DbState>) -> Result<Lis
     })
 }
 
-/// Clear backoff for failed tasks and trigger an immediate sync retry.
-#[tauri::command]
-pub async fn retry_failed_sync(list_id: i64, db: State<'_, DbState>, app: AppHandle) -> Result<SyncResult, String> {
-    let pool = pool_from_state(&db);
-
-    // Clear the retry backoff for all failed tasks in this list
-    core_tasks::clear_list_sync_retry(list_id, &pool)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Trigger an immediate sync
-    let engine = SyncEngine::new(pool);
-    let result = engine.sync_list(list_id).await;
-    emit_sync_completed(&app, &result);
-    Ok(result)
-}
-
 /// Helper to get SqlitePool from state.
 fn pool_from_state(db: &State<'_, DbState>) -> SqlitePool {
     SqlitePool::clone(db.0.as_ref())

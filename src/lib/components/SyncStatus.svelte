@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { SyncResult, ListSyncStatus } from '$lib/types';
-  import { syncList, getSyncStatus, retryFailedSync } from '$lib/api';
+  import { syncList, getSyncStatus } from '$lib/api';
 
   interface Props {
     listId: number;
@@ -10,7 +10,6 @@
 
   let status: ListSyncStatus | null = $state(null);
   let syncing = $state(false);
-  let retrying = $state(false);
   let error: string | null = $state(null);
   let lastResult: SyncResult | null = $state(null);
 
@@ -41,27 +40,6 @@
       error = e instanceof Error ? e.message : String(e);
     } finally {
       syncing = false;
-    }
-  }
-
-  // Retry failed sync operations
-  async function handleRetry() {
-    if (retrying || syncing) return;
-
-    retrying = true;
-    error = null;
-
-    try {
-      lastResult = await retryFailedSync(listId);
-      if (!lastResult.success) {
-        error = lastResult.error ?? 'Retry failed';
-      }
-      // Refresh status after retry
-      await loadStatus();
-    } catch (e) {
-      error = e instanceof Error ? e.message : String(e);
-    } finally {
-      retrying = false;
     }
   }
 
@@ -111,7 +89,7 @@
     <button
       class="sync-button"
       onclick={handleSync}
-      disabled={syncing || retrying}
+      disabled={syncing}
       title={status.last_sync ? `Last sync: ${formatRelativeTime(status.last_sync)}` : 'Never synced'}
     >
       {#if syncing}
@@ -125,27 +103,10 @@
       {/if}
     </button>
 
-    {#if status.failed_changes > 0}
-      <button
-        class="retry-button"
-        onclick={handleRetry}
-        disabled={retrying || syncing}
-        title={status.last_error ?? 'Retry failed sync operations'}
-      >
-        {#if retrying}
-          <span class="spinner"></span>
-          Retrying...
-        {:else}
-          Retry
-          <span class="failed-badge">{status.failed_changes}</span>
-        {/if}
-      </button>
-    {/if}
-
     {#if error}
       <span class="sync-error" title={error}>Sync failed</span>
-    {:else if status.last_error && status.failed_changes > 0}
-      <span class="sync-error" title={status.last_error}>Errors pending</span>
+    {:else if status.failed_changes > 0 && status.last_error}
+      <span class="sync-error" title={status.last_error}>{status.failed_changes} failed</span>
     {:else if syncSummary()}
       <span class="sync-summary">{syncSummary()}</span>
     {/if}
@@ -193,43 +154,6 @@
     font-size: 0.75rem;
     font-weight: 500;
     background: var(--accent-color, #3b82f6);
-    color: white;
-    border-radius: 10px;
-  }
-
-  .retry-button {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    border: 1px solid var(--error-color, #ef4444);
-    border-radius: 4px;
-    background: var(--bg-secondary);
-    color: var(--error-color, #ef4444);
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
-  }
-
-  .retry-button:hover:not(:disabled) {
-    background: rgba(239, 68, 68, 0.1);
-  }
-
-  .retry-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .failed-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: var(--error-color, #ef4444);
     color: white;
     border-radius: 10px;
   }
