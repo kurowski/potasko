@@ -1380,7 +1380,7 @@ Run `pnpm tauri dev`, add a task to a synced list, check Radicale for the new ta
 | ---- | ------------------------------- | ------------ |
 | 6.1  | Eager Sync (Single-Task Push)   | [x] Complete |
 | 6.2  | Offline change queue with retry | [ ] Pending  |
-| 6.3  | Background sync scheduler       | [ ] Pending  |
+| 6.3  | Background sync scheduler       | [x] Complete |
 | 6.4  | Sync logging for debugging      | [ ] Pending  |
 
 ---
