@@ -130,3 +130,7 @@ export async function getSyncStatus(listId: number): Promise<ListSyncStatus> {
 export async function getSyncLog(limit?: number, offset?: number): Promise<SyncLogEntry[]> {
   return invoke('get_sync_log_entries', { limit, offset });
 }
+
+export async function retryFailedSync(listId: number): Promise<SyncResult> {
+  return invoke('retry_failed_sync', { listId });
+}

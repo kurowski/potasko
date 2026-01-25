@@ -26,6 +26,19 @@ pub enum CalDavError {
     Conflict,
 }
 
+impl CalDavError {
+    /// Get HTTP status code if available.
+    pub fn http_status(&self) -> Option<u16> {
+        match self {
+            CalDavError::ServerError { status, .. } => Some(*status),
+            CalDavError::AuthFailed => Some(401),
+            CalDavError::Conflict => Some(412),
+            CalDavError::Http(e) => e.status().map(|s| s.as_u16()),
+            CalDavError::XmlParse(_) | CalDavError::Discovery(_) => None,
+        }
+    }
+}
+
 pub type Result<T> = std::result::Result<T, CalDavError>;
 
 /// CalDAV client for a specific server.

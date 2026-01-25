@@ -1,5 +1,6 @@
 //! Push local changes to the CalDAV server.
 
+use chrono::{Duration, Utc};
 use sqlx::SqlitePool;
 
 use crate::caldav::{build_vtodo, CalDavClient, CalDavError, VTodoBuildData};
@@ -7,7 +8,7 @@ use crate::core::tasks as core_tasks;
 use crate::models::{SyncStatus, Task};
 
 use super::log::log_sync_operation;
-use super::types::{PushStats, SyncError};
+use super::types::{PushStats, SyncError, SyncFailureType};
 
 /// Push all pending local changes to the server.
 pub async fn push_changes(
@@ -49,6 +50,8 @@ pub async fn push_changes(
         match result {
             Ok(PushAction::Created) => {
                 stats.created += 1;
+                // Clear any previous error on success
+                let _ = core_tasks::clear_task_sync_error(task.id, pool).await;
                 let _ = log_sync_operation(
                     pool,
                     account_id,
@@ -63,6 +66,8 @@ pub async fn push_changes(
             }
             Ok(PushAction::Updated) => {
                 stats.updated += 1;
+                // Clear any previous error on success
+                let _ = core_tasks::clear_task_sync_error(task.id, pool).await;
                 let _ = log_sync_operation(
                     pool,
                     account_id,
@@ -77,6 +82,7 @@ pub async fn push_changes(
             }
             Ok(PushAction::Deleted) => {
                 stats.deleted += 1;
+                // No need to clear error - task is deleted
                 let _ = log_sync_operation(
                     pool,
                     account_id,
@@ -95,6 +101,8 @@ pub async fn push_changes(
                     eprintln!("Failed to resolve conflict for task {}: {}", task.id, e);
                 }
                 stats.conflicts += 1;
+                // Clear error after conflict resolution
+                let _ = core_tasks::clear_task_sync_error(task.id, pool).await;
                 let _ = log_sync_operation(
                     pool,
                     account_id,
@@ -107,9 +115,30 @@ pub async fn push_changes(
                 )
                 .await;
             }
-            Err(e) => {
+            Err(ref e) => {
                 let msg = e.to_string();
                 eprintln!("Failed to push task {}: {}", task.id, msg);
+
+                // Classify the error and calculate backoff
+                let failure_type = classify_sync_error(e);
+                let retry_after = if failure_type.should_auto_retry() {
+                    // Calculate retry delay based on previous attempts
+                    let attempt = count_retry_attempts(&task);
+                    let delay = calculate_retry_delay(attempt);
+                    Some((Utc::now() + delay).to_rfc3339())
+                } else {
+                    None // No auto-retry for auth/client errors
+                };
+
+                // Record the error
+                let _ = core_tasks::update_task_sync_error(
+                    task.id,
+                    &msg,
+                    retry_after.as_deref(),
+                    pool,
+                )
+                .await;
+
                 let _ = log_sync_operation(
                     pool,
                     account_id,
@@ -237,4 +266,107 @@ async fn handle_conflict(
     .await?;
 
     Ok(())
+}
+
+/// Classify a sync error to determine retry behavior.
+fn classify_sync_error(error: &SyncError) -> SyncFailureType {
+    match error {
+        SyncError::CalDav(caldav_error) => {
+            // Extract HTTP status if available
+            if let Some(status) = caldav_error.http_status() {
+                SyncFailureType::from_http_status(status)
+            } else {
+                // Network/connection errors
+                SyncFailureType::Offline
+            }
+        }
+        SyncError::Database(_) => SyncFailureType::ClientError, // Don't retry DB errors
+        SyncError::VTodo(_) => SyncFailureType::ClientError,    // Don't retry parse errors
+        SyncError::Core(_) => SyncFailureType::ClientError,
+        SyncError::NoAccount(_) => SyncFailureType::ClientError,
+        SyncError::NoCalDavUrl(_) => SyncFailureType::ClientError,
+        SyncError::AccountNotFound(_) => SyncFailureType::ClientError,
+    }
+}
+
+/// Count retry attempts based on current error state.
+fn count_retry_attempts(task: &Task) -> u32 {
+    // If there's already an error and a retry_after in the future,
+    // this is a repeated attempt. Count based on the backoff duration.
+    if let (Some(_error), Some(retry_after)) = (&task.last_sync_error, &task.sync_retry_after) {
+        let now = Utc::now();
+        if *retry_after > now {
+            // Still in backoff - estimate attempt number from delay
+            let remaining = (*retry_after - now).num_seconds();
+            if remaining >= 3600 {
+                6 // 1 hour = max backoff
+            } else if remaining >= 1800 {
+                5 // 30 min
+            } else if remaining >= 600 {
+                4 // 10 min
+            } else if remaining >= 120 {
+                3 // 2 min
+            } else if remaining >= 30 {
+                2 // 30 sec
+            } else {
+                1
+            }
+        } else {
+            // Backoff expired, this is a retry
+            // Estimate based on the fact we had an error before
+            1
+        }
+    } else if task.last_sync_error.is_some() {
+        // Had error but no backoff time - first retry
+        1
+    } else {
+        // No previous error - first attempt
+        0
+    }
+}
+
+/// Calculate retry delay based on attempt number.
+/// Uses exponential backoff with a maximum of 1 hour.
+fn calculate_retry_delay(attempt: u32) -> Duration {
+    match attempt {
+        0 => Duration::zero(),           // Immediate
+        1 => Duration::seconds(30),      // 30 seconds
+        2 => Duration::seconds(120),     // 2 minutes
+        3 => Duration::seconds(600),     // 10 minutes
+        4 => Duration::seconds(1800),    // 30 minutes
+        _ => Duration::seconds(3600),    // 1 hour (max)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_calculate_retry_delay() {
+        assert_eq!(calculate_retry_delay(0).num_seconds(), 0);
+        assert_eq!(calculate_retry_delay(1).num_seconds(), 30);
+        assert_eq!(calculate_retry_delay(2).num_seconds(), 120);
+        assert_eq!(calculate_retry_delay(3).num_seconds(), 600);
+        assert_eq!(calculate_retry_delay(4).num_seconds(), 1800);
+        assert_eq!(calculate_retry_delay(5).num_seconds(), 3600);
+        assert_eq!(calculate_retry_delay(100).num_seconds(), 3600); // Max
+    }
+
+    #[test]
+    fn test_sync_failure_type_from_http() {
+        assert_eq!(SyncFailureType::from_http_status(401), SyncFailureType::AuthFailure);
+        assert_eq!(SyncFailureType::from_http_status(403), SyncFailureType::AuthFailure);
+        assert_eq!(SyncFailureType::from_http_status(404), SyncFailureType::ClientError);
+        assert_eq!(SyncFailureType::from_http_status(500), SyncFailureType::ServerError);
+        assert_eq!(SyncFailureType::from_http_status(503), SyncFailureType::ServerError);
+    }
+
+    #[test]
+    fn test_should_auto_retry() {
+        assert!(SyncFailureType::Offline.should_auto_retry());
+        assert!(SyncFailureType::ServerError.should_auto_retry());
+        assert!(!SyncFailureType::AuthFailure.should_auto_retry());
+        assert!(!SyncFailureType::ClientError.should_auto_retry());
+    }
 }

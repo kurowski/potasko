@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        UPDATE tasks\n        SET sync_retry_after = NULL\n        WHERE list_id = ? AND last_sync_error IS NOT NULL\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "588bdf90f8a74ccb7385fedea243dbd6e92549ba59a1e0319473aba915b21507"
+}

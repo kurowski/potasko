@@ -29,6 +29,8 @@ pub async fn get_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Task>> {
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
@@ -65,6 +67,8 @@ pub async fn get_task(id: i64, pool: &SqlitePool) -> Result<Task> {
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
@@ -258,6 +262,8 @@ pub async fn get_tasks_today(pool: &SqlitePool) -> Result<Vec<Task>> {
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
@@ -295,6 +301,8 @@ pub async fn get_tasks_overdue(pool: &SqlitePool) -> Result<Vec<Task>> {
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
@@ -387,6 +395,8 @@ pub(crate) struct TaskRow {
     local_version: i64,
     synced_version: i64,
     sync_status: String,
+    last_sync_error: Option<String>,
+    sync_retry_after: Option<String>,
     created_at: String,
     updated_at: String,
 }
@@ -410,6 +420,8 @@ impl From<TaskRow> for Task {
             local_version: row.local_version,
             synced_version: row.synced_version,
             sync_status: SyncStatus::from_str(&row.sync_status),
+            last_sync_error: row.last_sync_error,
+            sync_retry_after: row.sync_retry_after.and_then(|s| parse_datetime_opt(&s)),
             created_at: parse_datetime(&row.created_at),
             updated_at: parse_datetime(&row.updated_at),
         }
@@ -437,6 +449,7 @@ pub(crate) fn parse_datetime_opt(s: &str) -> Option<chrono::DateTime<Utc>> {
 
 /// Get tasks that need to be pushed to the server.
 /// Returns tasks where local_version > synced_version OR sync_status = 'deleted'.
+/// Excludes tasks in backoff period (sync_retry_after > now).
 pub async fn get_pending_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Task>> {
     let rows = sqlx::query_as!(
         TaskRow,
@@ -458,11 +471,14 @@ pub async fn get_pending_tasks(list_id: i64, pool: &SqlitePool) -> Result<Vec<Ta
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
         WHERE list_id = ?
           AND (local_version > synced_version OR sync_status = 'deleted')
+          AND (sync_retry_after IS NULL OR sync_retry_after <= datetime('now'))
         "#,
         list_id
     )
@@ -494,6 +510,8 @@ pub async fn get_tasks_by_href(list_id: i64, pool: &SqlitePool) -> Result<std::c
             local_version as "local_version!",
             synced_version as "synced_version!",
             sync_status as "sync_status!",
+            last_sync_error,
+            sync_retry_after,
             created_at as "created_at!",
             updated_at as "updated_at!"
         FROM tasks
@@ -697,4 +715,91 @@ pub async fn update_task_by_href_from_server(
     .await?;
 
     Ok(())
+}
+
+/// Update task sync error and retry backoff time.
+pub async fn update_task_sync_error(
+    id: i64,
+    error: &str,
+    retry_after: Option<&str>,
+    pool: &SqlitePool,
+) -> Result<()> {
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET last_sync_error = ?, sync_retry_after = ?
+        WHERE id = ?
+        "#,
+        error,
+        retry_after,
+        id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Clear task sync error and retry backoff (after successful sync).
+pub async fn clear_task_sync_error(id: i64, pool: &SqlitePool) -> Result<()> {
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET last_sync_error = NULL, sync_retry_after = NULL
+        WHERE id = ?
+        "#,
+        id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Clear sync retry backoff for all failed tasks in a list (for force retry).
+pub async fn clear_list_sync_retry(list_id: i64, pool: &SqlitePool) -> Result<()> {
+    sqlx::query!(
+        r#"
+        UPDATE tasks
+        SET sync_retry_after = NULL
+        WHERE list_id = ? AND last_sync_error IS NOT NULL
+        "#,
+        list_id
+    )
+    .execute(pool)
+    .await?;
+
+    Ok(())
+}
+
+/// Count tasks with sync errors in a list.
+pub async fn count_failed_tasks(list_id: i64, pool: &SqlitePool) -> Result<u32> {
+    let row = sqlx::query!(
+        r#"
+        SELECT COUNT(*) as count FROM tasks
+        WHERE list_id = ? AND last_sync_error IS NOT NULL
+        "#,
+        list_id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(row.count as u32)
+}
+
+/// Get the last sync error for a list (most recent error from any task).
+pub async fn get_list_last_error(list_id: i64, pool: &SqlitePool) -> Result<Option<String>> {
+    let row = sqlx::query!(
+        r#"
+        SELECT last_sync_error FROM tasks
+        WHERE list_id = ? AND last_sync_error IS NOT NULL
+        ORDER BY updated_at DESC
+        LIMIT 1
+        "#,
+        list_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.and_then(|r| r.last_sync_error))
 }

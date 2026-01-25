@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT\n            id as \"id!\",\n            list_id as \"list_id!\",\n            uid as \"uid!\",\n            title as \"title!\",\n            description,\n            due_date,\n            priority,\n            completed as \"completed!\",\n            completed_at,\n            rrule,\n            caldav_href,\n            caldav_etag,\n            raw_icalendar,\n            local_version as \"local_version!\",\n            synced_version as \"synced_version!\",\n            sync_status as \"sync_status!\",\n            created_at as \"created_at!\",\n            updated_at as \"updated_at!\"\n        FROM tasks\n        WHERE sync_status != 'deleted'\n          AND completed = 0\n          AND due_date IS NOT NULL\n          AND date(due_date) < date('now')\n        ORDER BY due_date ASC, priority ASC NULLS LAST, created_at ASC\n        ",
+  "query": "\n        SELECT\n            id as \"id!\",\n            list_id as \"list_id!\",\n            uid as \"uid!\",\n            title as \"title!\",\n            description,\n            due_date,\n            priority,\n            completed as \"completed!\",\n            completed_at,\n            rrule,\n            caldav_href,\n            caldav_etag,\n            raw_icalendar,\n            local_version as \"local_version!\",\n            synced_version as \"synced_version!\",\n            sync_status as \"sync_status!\",\n            last_sync_error,\n            sync_retry_after,\n            created_at as \"created_at!\",\n            updated_at as \"updated_at!\"\n        FROM tasks\n        WHERE list_id = ? AND caldav_href IS NOT NULL\n        ",
   "describe": {
     "columns": [
       {
@@ -84,18 +84,28 @@
         "type_info": "Text"
       },
       {
-        "name": "created_at!",
+        "name": "last_sync_error",
         "ordinal": 16,
         "type_info": "Text"
       },
       {
-        "name": "updated_at!",
+        "name": "sync_retry_after",
         "ordinal": 17,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at!",
+        "ordinal": 18,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at!",
+        "ordinal": 19,
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
       true,
@@ -114,9 +124,11 @@
       false,
       false,
       false,
+      true,
+      true,
       false,
       false
     ]
   },
-  "hash": "9310b8d0c0a73dbaa77458db39d532436c9eecb0f85136d121cbf64d2832445b"
+  "hash": "7a28d048155bf50601ab4154b00a7ff788a85b7576401432997be673743ac2a8"
 }

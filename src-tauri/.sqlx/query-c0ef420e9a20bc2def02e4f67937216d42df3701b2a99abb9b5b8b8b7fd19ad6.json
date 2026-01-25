@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT COUNT(*) as count FROM tasks\n        WHERE list_id = ? AND last_sync_error IS NOT NULL\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "count",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c0ef420e9a20bc2def02e4f67937216d42df3701b2a99abb9b5b8b8b7fd19ad6"
+}

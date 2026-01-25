@@ -19,6 +19,8 @@ export interface Task {
   local_version: number;
   synced_version: number;
   sync_status: SyncStatus;
+  last_sync_error: string | null;
+  sync_retry_after: string | null;  // ISO 8601 timestamp
   created_at: string;
   updated_at: string;
 }
@@ -144,6 +146,8 @@ export interface ListSyncStatus {
   list_id: number;
   has_caldav: boolean;
   pending_changes: number;
+  failed_changes: number;
+  last_error: string | null;
   last_sync: string | null;
 }
 

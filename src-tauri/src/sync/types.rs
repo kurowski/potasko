@@ -3,6 +3,36 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// Classification of sync failure types for retry logic.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SyncFailureType {
+    /// Network unreachable, timeout - auto-retry with backoff
+    Offline,
+    /// 401/403 - needs user action (re-authentication)
+    AuthFailure,
+    /// 5xx - transient server error, retry with backoff
+    ServerError,
+    /// Other 4xx - likely permanent, don't auto-retry
+    ClientError,
+}
+
+impl SyncFailureType {
+    /// Classify an HTTP status code into a failure type.
+    pub fn from_http_status(status: u16) -> Self {
+        match status {
+            401 | 403 => Self::AuthFailure,
+            500..=599 => Self::ServerError,
+            400..=499 => Self::ClientError,
+            _ => Self::Offline, // Treat unknown as offline
+        }
+    }
+
+    /// Whether this failure type should be automatically retried.
+    pub fn should_auto_retry(&self) -> bool {
+        matches!(self, Self::Offline | Self::ServerError)
+    }
+}
+
 /// Errors that can occur during sync.
 #[derive(Error, Debug)]
 pub enum SyncError {

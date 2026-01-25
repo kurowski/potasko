@@ -1379,9 +1379,62 @@ Run `pnpm tauri dev`, add a task to a synced list, check Radicale for the new ta
 | Step | Description                     | Status       |
 | ---- | ------------------------------- | ------------ |
 | 6.1  | Eager Sync (Single-Task Push)   | [x] Complete |
-| 6.2  | Offline change queue with retry | [ ] Pending  |
+| 6.2  | Offline change queue with retry | [x] Complete |
 | 6.3  | Background sync scheduler       | [x] Complete |
 | 6.4  | Sync logging for debugging      | [x] Complete |
+
+---
+
+## Step 6.2: Offline Change Queue with Retry
+
+**Status**: [x] Complete
+
+### Goal
+
+Add explicit error tracking and retry logic for failed sync operations with exponential backoff.
+
+### Session (Step 6.2)
+
+**Completed:**
+
+- Added database migration for sync retry fields:
+  - `last_sync_error` - Error message from last failed sync attempt
+  - `sync_retry_after` - Timestamp when next retry is allowed
+- Added `SyncFailureType` enum for error classification:
+  - `Offline` - Network errors (auto-retry with backoff)
+  - `AuthFailure` - 401/403 (needs user action)
+  - `ServerError` - 5xx (auto-retry with backoff)
+  - `ClientError` - Other 4xx (no auto-retry)
+- Updated Task model with error/retry fields
+- Modified `get_pending_tasks()` to skip tasks in backoff period
+- Updated push logic to:
+  - Classify errors and calculate backoff delays
+  - Record error info on failure
+  - Clear error fields on success
+- Backoff schedule: 0s → 30s → 2min → 10min → 30min → 1hr (max)
+- Added `retry_failed_sync` Tauri command to clear backoff and retry immediately
+- Enhanced `get_sync_status` to return `failed_changes` count and `last_error`
+- Updated SyncStatus.svelte UI:
+  - Shows red "Retry" button with failed count badge
+  - Displays error message in tooltip
+- Added unit tests for backoff calculation and error classification
+
+**Files Created:**
+
+- `src-tauri/migrations/20250125000000_sync_retry_fields.sql`
+
+**Files Modified:**
+
+- `src-tauri/src/sync/types.rs` - Added `SyncFailureType` enum
+- `src-tauri/src/models/task.rs` - Added error/retry fields
+- `src-tauri/src/core/tasks.rs` - Updated queries, added error helper functions
+- `src-tauri/src/sync/push.rs` - Added backoff logic, error classification
+- `src-tauri/src/caldav/client.rs` - Added `http_status()` method to CalDavError
+- `src-tauri/src/commands/sync.rs` - Added `retry_failed_sync`, enhanced `get_sync_status`
+- `src-tauri/src/lib.rs` - Registered new command
+- `src/lib/types/index.ts` - Updated Task and ListSyncStatus types
+- `src/lib/api/index.ts` - Added `retryFailedSync()` function
+- `src/lib/components/SyncStatus.svelte` - Added retry button and error display
 
 ---
 

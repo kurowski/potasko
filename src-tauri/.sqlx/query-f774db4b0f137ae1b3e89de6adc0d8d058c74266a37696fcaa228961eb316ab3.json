@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "\n        SELECT\n            id as \"id!\",\n            list_id as \"list_id!\",\n            uid as \"uid!\",\n            title as \"title!\",\n            description,\n            due_date,\n            priority,\n            completed as \"completed!\",\n            completed_at,\n            rrule,\n            caldav_href,\n            caldav_etag,\n            raw_icalendar,\n            local_version as \"local_version!\",\n            synced_version as \"synced_version!\",\n            sync_status as \"sync_status!\",\n            created_at as \"created_at!\",\n            updated_at as \"updated_at!\"\n        FROM tasks\n        WHERE list_id = ?\n          AND (local_version > synced_version OR sync_status = 'deleted')\n        ",
+  "query": "\n        SELECT\n            id as \"id!\",\n            list_id as \"list_id!\",\n            uid as \"uid!\",\n            title as \"title!\",\n            description,\n            due_date,\n            priority,\n            completed as \"completed!\",\n            completed_at,\n            rrule,\n            caldav_href,\n            caldav_etag,\n            raw_icalendar,\n            local_version as \"local_version!\",\n            synced_version as \"synced_version!\",\n            sync_status as \"sync_status!\",\n            last_sync_error,\n            sync_retry_after,\n            created_at as \"created_at!\",\n            updated_at as \"updated_at!\"\n        FROM tasks\n        WHERE list_id = ?\n          AND (local_version > synced_version OR sync_status = 'deleted')\n          AND (sync_retry_after IS NULL OR sync_retry_after <= datetime('now'))\n        ",
   "describe": {
     "columns": [
       {
@@ -84,13 +84,23 @@
         "type_info": "Text"
       },
       {
-        "name": "created_at!",
+        "name": "last_sync_error",
         "ordinal": 16,
         "type_info": "Text"
       },
       {
-        "name": "updated_at!",
+        "name": "sync_retry_after",
         "ordinal": 17,
+        "type_info": "Text"
+      },
+      {
+        "name": "created_at!",
+        "ordinal": 18,
+        "type_info": "Text"
+      },
+      {
+        "name": "updated_at!",
+        "ordinal": 19,
         "type_info": "Text"
       }
     ],
@@ -114,9 +124,11 @@
       false,
       false,
       false,
+      true,
+      true,
       false,
       false
     ]
   },
-  "hash": "93898716193ebc615a941b5fdbbb614e778bf873cfe69125b0d7cba2fb000aa2"
+  "hash": "f774db4b0f137ae1b3e89de6adc0d8d058c74266a37696fcaa228961eb316ab3"
 }

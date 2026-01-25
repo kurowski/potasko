@@ -70,6 +70,12 @@ pub struct Task {
     pub synced_version: i64,
     pub sync_status: SyncStatus,
 
+    // Sync error tracking
+    /// Error message from last failed sync attempt.
+    pub last_sync_error: Option<String>,
+    /// Timestamp when next retry is allowed (for backoff).
+    pub sync_retry_after: Option<DateTime<Utc>>,
+
     // Timestamps
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

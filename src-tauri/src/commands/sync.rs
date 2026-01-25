@@ -1,5 +1,6 @@
 //! Tauri commands for sync operations.
 
+use crate::core::tasks as core_tasks;
 use crate::sync::{emit_sync_completed, get_sync_log, AccountSyncResult, SyncEngine, SyncLogEntry, SyncResult};
 use crate::DbState;
 use sqlx::SqlitePool;
@@ -53,6 +54,14 @@ pub async fn get_sync_status(list_id: i64, db: State<'_, DbState>) -> Result<Lis
     .map_err(|e| e.to_string())?;
     let pending_count = row.count as u32;
 
+    // Count failed tasks and get last error
+    let failed_count = core_tasks::count_failed_tasks(list_id, &pool)
+        .await
+        .map_err(|e| e.to_string())?;
+    let last_error = core_tasks::get_list_last_error(list_id, &pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
     // Get list info (for caldav_url and last sync)
     let list = sqlx::query!(
         "SELECT caldav_url, ctag, updated_at FROM task_lists WHERE id = ?",
@@ -71,8 +80,27 @@ pub async fn get_sync_status(list_id: i64, db: State<'_, DbState>) -> Result<Lis
         list_id,
         has_caldav,
         pending_changes: pending_count,
+        failed_changes: failed_count,
+        last_error,
         last_sync,
     })
+}
+
+/// Clear backoff for failed tasks and trigger an immediate sync retry.
+#[tauri::command]
+pub async fn retry_failed_sync(list_id: i64, db: State<'_, DbState>, app: AppHandle) -> Result<SyncResult, String> {
+    let pool = pool_from_state(&db);
+
+    // Clear the retry backoff for all failed tasks in this list
+    core_tasks::clear_list_sync_retry(list_id, &pool)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Trigger an immediate sync
+    let engine = SyncEngine::new(pool);
+    let result = engine.sync_list(list_id).await;
+    emit_sync_completed(&app, &result);
+    Ok(result)
 }
 
 /// Helper to get SqlitePool from state.
@@ -86,6 +114,8 @@ pub struct ListSyncStatus {
     pub list_id: i64,
     pub has_caldav: bool,
     pub pending_changes: u32,
+    pub failed_changes: u32,
+    pub last_error: Option<String>,
     pub last_sync: Option<String>,
 }
 
