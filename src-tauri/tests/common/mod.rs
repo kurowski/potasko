@@ -18,9 +18,13 @@ pub const RADICALE_PASS: &str = "test";
 
 /// Test context holding temp database and unique calendar name.
 pub struct TestContext {
-    pub db_dir: TempDir,
+    /// Temp directory - kept to ensure cleanup on drop (not read directly).
+    #[allow(dead_code)]
+    db_dir: TempDir,
     pub db_path: PathBuf,
-    pub calendar_name: String,
+    /// Calendar name for this test - used to construct calendar_url.
+    #[allow(dead_code)]
+    calendar_name: String,
     pub calendar_url: String,
 }
 
@@ -41,6 +45,7 @@ impl TestContext {
     }
 
     /// Get a CLI command configured with this test's database.
+    #[allow(deprecated)]
     pub fn cli(&self) -> Command {
         let mut cmd = Command::cargo_bin("potasko").expect("Failed to find potasko binary");
         cmd.arg("--database").arg(&self.db_path);

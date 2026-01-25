@@ -1,3 +1,4 @@
+mod background;
 mod caldav;
 pub mod cli;
 mod commands;
@@ -50,8 +51,14 @@ pub fn run() {
                 db::init(&db_path).await
             })?;
 
+            let pool = Arc::new(pool);
+
             // Store pool in app state
-            app.manage(DbState(Arc::new(pool)));
+            app.manage(DbState(Arc::clone(&pool)));
+
+            // Start background sync scheduler
+            let app_handle = app.handle().clone();
+            background::start_background_sync(app_handle, pool);
 
             println!("Database initialized successfully");
             Ok(())

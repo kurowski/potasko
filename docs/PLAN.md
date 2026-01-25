@@ -173,7 +173,7 @@ dirs = "6.0"
 - [x] Server-wins conflict resolution (fetch and overwrite local)
 - [x] Eager sync (single-task push on mutation)
 - [ ] Offline change queue with retry
-- [ ] Background sync scheduler
+- [x] Background sync scheduler (5 min interval + Tauri events)
 - [ ] Sync logging for debugging
 
 ### Phase 7: Polish
@@ -218,6 +218,7 @@ dirs = "6.0"
 5. **Tauri async commands** - Use owned types, not borrowed
 6. **Mobile paths** - Use Tauri's path APIs for Android compatibility
 7. **Credential storage** - Use tauri-plugin-stronghold or system keyring
+8. **Edit during background sync** - If a task is modified on the server while the user is editing it locally, the user's save will silently overwrite the server version (last-write-wins). This is intentional to avoid interrupting the user's workflow.
 
 ---
 

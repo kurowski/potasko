@@ -3,6 +3,7 @@
   import type { Task } from '$lib/types';
   import { listStore } from '$lib/stores/lists.svelte';
   import { taskStore } from '$lib/stores/tasks.svelte';
+  import { syncStore } from '$lib/stores/sync.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
@@ -51,7 +52,20 @@
     listStore.load();
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    // Setup sync event listeners to reload tasks when sync completes
+    syncStore.setupEventListeners((listId) => {
+      const view = listStore.selectedView;
+      // Reload if viewing this list or a special view (Today/Overdue may include tasks from any list)
+      if ((view?.type === 'list' && view.id === listId) || view?.type === 'special') {
+        taskStore.reload();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      syncStore.cleanup();
+    };
   });
 
   // Load tasks when selected view changes

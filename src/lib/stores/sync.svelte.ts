@@ -1,13 +1,10 @@
 // Sync store for managing sync operations
 import { syncAccount } from '$lib/api';
-import type { AccountSyncResult } from '$lib/types';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { AccountSyncResult, SyncResult } from '$lib/types';
 
-interface SyncState {
-  syncing: boolean;
-  syncingAccountId: number | null;
-  lastResult: AccountSyncResult | null;
-  error: string | null;
-}
+// Track event listeners for cleanup
+let unlistenFns: UnlistenFn[] = [];
 
 function createSyncStore() {
   let syncing = $state(false);
@@ -52,6 +49,25 @@ function createSyncStore() {
     clearResult() {
       lastResult = null;
       error = null;
+    },
+
+    /**
+     * Setup event listeners for sync events from the backend.
+     * Call this in onMount and pass a callback to handle list sync completion.
+     */
+    async setupEventListeners(onListSynced: (listId: number) => void) {
+      const unlisten = await listen<SyncResult>('sync:list-completed', (event) => {
+        onListSynced(event.payload.list_id);
+      });
+      unlistenFns.push(unlisten);
+    },
+
+    /**
+     * Cleanup event listeners. Call this in component cleanup/onDestroy.
+     */
+    cleanup() {
+      unlistenFns.forEach(fn => fn());
+      unlistenFns = [];
     },
   };
 }

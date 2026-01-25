@@ -1,29 +1,38 @@
 //! Tauri commands for sync operations.
 
-use crate::sync::{get_sync_log, AccountSyncResult, SyncEngine, SyncLogEntry, SyncResult};
+use crate::sync::{emit_sync_completed, get_sync_log, AccountSyncResult, SyncEngine, SyncLogEntry, SyncResult};
 use crate::DbState;
 use sqlx::SqlitePool;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 /// Sync a single list with its CalDAV calendar.
 #[tauri::command]
-pub async fn sync_list(list_id: i64, db: State<'_, DbState>) -> Result<SyncResult, String> {
+pub async fn sync_list(list_id: i64, db: State<'_, DbState>, app: AppHandle) -> Result<SyncResult, String> {
     let engine = SyncEngine::new(pool_from_state(&db));
-    Ok(engine.sync_list(list_id).await)
+    let result = engine.sync_list(list_id).await;
+    emit_sync_completed(&app, &result);
+    Ok(result)
 }
 
 /// Initial download: fetch all tasks from a CalDAV calendar.
 #[tauri::command]
-pub async fn initial_download(list_id: i64, db: State<'_, DbState>) -> Result<SyncResult, String> {
+pub async fn initial_download(list_id: i64, db: State<'_, DbState>, app: AppHandle) -> Result<SyncResult, String> {
     let engine = SyncEngine::new(pool_from_state(&db));
-    Ok(engine.initial_download(list_id).await)
+    let result = engine.initial_download(list_id).await;
+    emit_sync_completed(&app, &result);
+    Ok(result)
 }
 
 /// Sync all lists for an account: discovers calendars, imports new ones, syncs all lists.
 #[tauri::command]
-pub async fn sync_account(account_id: i64, db: State<'_, DbState>) -> Result<AccountSyncResult, String> {
+pub async fn sync_account(account_id: i64, db: State<'_, DbState>, app: AppHandle) -> Result<AccountSyncResult, String> {
     let engine = SyncEngine::new(pool_from_state(&db));
-    Ok(engine.sync_account(account_id).await)
+    let result = engine.sync_account(account_id).await;
+    // Emit event for each synced list
+    for list_result in &result.list_results {
+        emit_sync_completed(&app, list_result);
+    }
+    Ok(result)
 }
 
 /// Get sync status for a list.
