@@ -174,7 +174,7 @@ dirs = "6.0"
 - [x] Eager sync (single-task push on mutation)
 - [ ] Offline change queue with retry
 - [x] Background sync scheduler (5 min interval + Tauri events)
-- [ ] Sync logging for debugging
+- [x] Sync logging for debugging
 
 ### Phase 7: Polish
 - [ ] Keyboard shortcuts
