@@ -1391,7 +1391,16 @@ Run `pnpm tauri dev`, add a task to a synced list, check Radicale for the new ta
 
 ### Goal
 
-Add explicit error tracking and retry logic for failed sync operations with exponential backoff.
+Add error tracking for failed sync operations with automatic retry on next sync.
+
+### Design Approach
+
+The offline queue uses a simple approach: tasks with `local_version > synced_version` are pending changes. Each sync attempt pushes all pending changes. Error tracking is for UI visibility only - it doesn't affect retry behavior.
+
+Initially implemented with exponential backoff, this was simplified because:
+- Devices being offline for extended periods is normal
+- Manual sync should always try everything
+- Simpler logic is easier to maintain
 
 ### Session (Step 6.2)
 
@@ -1399,25 +1408,19 @@ Add explicit error tracking and retry logic for failed sync operations with expo
 
 - Added database migration for sync retry fields:
   - `last_sync_error` - Error message from last failed sync attempt
-  - `sync_retry_after` - Timestamp when next retry is allowed
-- Added `SyncFailureType` enum for error classification:
-  - `Offline` - Network errors (auto-retry with backoff)
-  - `AuthFailure` - 401/403 (needs user action)
-  - `ServerError` - 5xx (auto-retry with backoff)
-  - `ClientError` - Other 4xx (no auto-retry)
-- Updated Task model with error/retry fields
-- Modified `get_pending_tasks()` to skip tasks in backoff period
-- Updated push logic to:
-  - Classify errors and calculate backoff delays
-  - Record error info on failure
-  - Clear error fields on success
-- Backoff schedule: 0s → 30s → 2min → 10min → 30min → 1hr (max)
-- Added `retry_failed_sync` Tauri command to clear backoff and retry immediately
+  - `sync_retry_after` - Reserved for future use (currently unused)
+- Updated Task model with `last_sync_error` field
+- Push logic records errors on failure, clears on success
 - Enhanced `get_sync_status` to return `failed_changes` count and `last_error`
-- Updated SyncStatus.svelte UI:
-  - Shows red "Retry" button with failed count badge
-  - Displays error message in tooltip
-- Added unit tests for backoff calculation and error classification
+- Updated SyncStatus.svelte UI to display error count and message
+- Sync log records all operations with timestamps
+
+**Behavior:**
+
+- Every sync (manual or background) pushes ALL pending changes
+- Errors are recorded for display but don't block retry
+- Failed tasks show count in UI with error tooltip
+- Next sync automatically retries failed tasks
 
 **Files Created:**
 
@@ -1425,16 +1428,13 @@ Add explicit error tracking and retry logic for failed sync operations with expo
 
 **Files Modified:**
 
-- `src-tauri/src/sync/types.rs` - Added `SyncFailureType` enum
-- `src-tauri/src/models/task.rs` - Added error/retry fields
+- `src-tauri/src/models/task.rs` - Added error field
 - `src-tauri/src/core/tasks.rs` - Updated queries, added error helper functions
-- `src-tauri/src/sync/push.rs` - Added backoff logic, error classification
+- `src-tauri/src/sync/push.rs` - Records errors on failure, clears on success
 - `src-tauri/src/caldav/client.rs` - Added `http_status()` method to CalDavError
-- `src-tauri/src/commands/sync.rs` - Added `retry_failed_sync`, enhanced `get_sync_status`
-- `src-tauri/src/lib.rs` - Registered new command
+- `src-tauri/src/commands/sync.rs` - Enhanced `get_sync_status`
 - `src/lib/types/index.ts` - Updated Task and ListSyncStatus types
-- `src/lib/api/index.ts` - Added `retryFailedSync()` function
-- `src/lib/components/SyncStatus.svelte` - Added retry button and error display
+- `src/lib/components/SyncStatus.svelte` - Shows error count and message
 
 ---
 
