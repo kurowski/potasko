@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "\n        SELECT COUNT(*) as count FROM tasks\n        WHERE list_id = ? AND sync_status != 'deleted'\n        ",
+  "describe": {
+    "columns": [
+      {
+        "name": "count",
+        "ordinal": 0,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7f761f4d33b98d1f947dc193bebca02cfe060e2ba315e8998d5b2275ee9bfef6"
+}
