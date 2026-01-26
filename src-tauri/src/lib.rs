@@ -23,7 +23,7 @@ use commands::{
     get_lists, get_list, create_list, update_list, delete_list,
     // Task commands
     get_tasks, get_task, create_task, update_task, delete_task, toggle_task_completion,
-    get_tasks_today, get_tasks_overdue,
+    get_tasks_today, get_tasks_overdue, get_task_count,
     // Sync commands
     sync_list, sync_account, initial_download, get_sync_status, get_sync_log_entries,
 };
@@ -86,6 +86,7 @@ pub fn run() {
             toggle_task_completion,
             get_tasks_today,
             get_tasks_overdue,
+            get_task_count,
             // Sync commands
             sync_list,
             sync_account,

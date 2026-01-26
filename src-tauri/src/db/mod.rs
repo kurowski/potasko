@@ -1,5 +1,6 @@
-use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions};
 use std::path::Path;
+use std::str::FromStr;
 
 /// Creates a connection pool to the SQLite database.
 /// The database file is created if it doesn't exist.
@@ -11,9 +12,13 @@ pub async fn create_pool(db_path: &Path) -> Result<SqlitePool, sqlx::Error> {
 
     let db_url = format!("sqlite:{}?mode=rwc", db_path.display());
 
+    // Enable foreign keys for CASCADE deletes to work
+    let options = SqliteConnectOptions::from_str(&db_url)?
+        .foreign_keys(true);
+
     SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&db_url)
+        .connect_with(options)
         .await
 }
 

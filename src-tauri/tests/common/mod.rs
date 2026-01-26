@@ -293,6 +293,56 @@ impl TestContext {
             ))
         }
     }
+
+    /// Check if this test's calendar exists on the server.
+    pub fn calendar_exists_on_server(&self) -> bool {
+        let client = Client::new();
+        let response = client
+            .request(
+                reqwest::Method::from_bytes(b"PROPFIND").unwrap(),
+                &self.calendar_url,
+            )
+            .basic_auth(RADICALE_USER, Some(RADICALE_PASS))
+            .header("Depth", "0")
+            .send();
+
+        match response {
+            Ok(resp) => resp.status().is_success(),
+            Err(_) => false,
+        }
+    }
+
+    /// Check if a calendar with a partial name match exists on the server.
+    /// Used for testing MKCALENDAR where we don't know the exact URL.
+    pub fn check_calendar_exists_on_server(&self, name_contains: &str) -> bool {
+        let calendar_home_url = format!("{}/{}/", RADICALE_URL, RADICALE_USER);
+
+        let client = Client::new();
+        let response = client
+            .request(
+                reqwest::Method::from_bytes(b"PROPFIND").unwrap(),
+                &calendar_home_url,
+            )
+            .basic_auth(RADICALE_USER, Some(RADICALE_PASS))
+            .header("Depth", "1")
+            .header("Content-Type", "application/xml; charset=utf-8")
+            .body(r#"<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:">
+  <d:prop>
+    <d:displayname/>
+  </d:prop>
+</d:propfind>"#)
+            .send();
+
+        match response {
+            Ok(resp) if resp.status().is_success() => {
+                let body = resp.text().unwrap_or_default();
+                // Check if any calendar contains the name (case-insensitive)
+                body.to_lowercase().contains(&name_contains.to_lowercase())
+            }
+            _ => false,
+        }
+    }
 }
 
 impl Drop for TestContext {

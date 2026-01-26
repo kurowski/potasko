@@ -127,3 +127,10 @@ pub async fn get_tasks_overdue(db: State<'_, DbState>) -> Result<Vec<Task>, Stri
         .await
         .map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub async fn get_task_count(list_id: i64, db: State<'_, DbState>) -> Result<i64, String> {
+    core::tasks::count_tasks(list_id, db.0.as_ref())
+        .await
+        .map_err(|e| e.to_string())
+}

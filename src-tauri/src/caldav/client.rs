@@ -318,4 +318,52 @@ impl CalDavClient {
         let text = self.propfind(calendar_url, 0, body).await?;
         xml::parse_ctag_response(&text)
     }
+
+    /// Create a new calendar collection using MKCALENDAR.
+    ///
+    /// The calendar_url should be the full URL to the new calendar,
+    /// e.g., "https://server.com/calendars/user/new-calendar/"
+    pub async fn mkcalendar(
+        &self,
+        calendar_url: &str,
+        display_name: &str,
+        color: Option<&str>,
+    ) -> Result<()> {
+        let url = self.resolve_url(calendar_url);
+        let body = xml::build_mkcalendar_body(display_name, color);
+
+        let response = self
+            .http
+            .request(reqwest::Method::from_bytes(b"MKCALENDAR").unwrap(), &url)
+            .basic_auth(&self.username, Some(&self.password))
+            .header("Content-Type", "application/xml; charset=utf-8")
+            .body(body)
+            .send()
+            .await?;
+
+        let status = response.status();
+
+        if status == StatusCode::UNAUTHORIZED {
+            return Err(CalDavError::AuthFailed);
+        }
+
+        // 201 Created is the expected success response
+        if !status.is_success() {
+            let message = response.text().await.unwrap_or_default();
+            return Err(CalDavError::ServerError {
+                status: status.as_u16(),
+                message,
+            });
+        }
+
+        Ok(())
+    }
+
+    /// Delete a calendar collection.
+    ///
+    /// This is used to delete an entire calendar from the server.
+    pub async fn delete_calendar(&self, calendar_url: &str) -> Result<()> {
+        // Use unconditional delete (no etag) for calendar collections
+        self.delete(calendar_url, None).await
+    }
 }

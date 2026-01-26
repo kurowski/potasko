@@ -30,6 +30,8 @@ pub struct TaskList {
 pub struct CreateTaskList {
     pub name: String,
     pub color: Option<String>,
+    /// If provided, the list will be created on the CalDAV server for this account.
+    pub account_id: Option<i64>,
 }
 
 /// Data for updating an existing task list.

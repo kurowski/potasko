@@ -785,3 +785,18 @@ pub async fn get_list_last_error(list_id: i64, pool: &SqlitePool) -> Result<Opti
 
     Ok(row.and_then(|r| r.last_sync_error))
 }
+
+/// Count total tasks in a list (excluding deleted tasks).
+pub async fn count_tasks(list_id: i64, pool: &SqlitePool) -> Result<i64> {
+    let row = sqlx::query!(
+        r#"
+        SELECT COUNT(*) as count FROM tasks
+        WHERE list_id = ? AND sync_status != 'deleted'
+        "#,
+        list_id
+    )
+    .fetch_one(pool)
+    .await?;
+
+    Ok(row.count as i64)
+}

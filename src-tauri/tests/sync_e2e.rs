@@ -1,15 +1,17 @@
 //! End-to-end tests for CalDAV sync.
 //!
 //! These tests run against a local Radicale server (localhost:5232).
-//! Run with: cargo test --test sync_e2e -- --test-threads=1
+//! Tests are marked #[serial] to avoid race conditions with shared server state.
 
 mod common;
 
 use common::TestContext;
 use predicates::prelude::*;
+use serial_test::serial;
 
 /// Test initial download of tasks from a CalDAV calendar.
 #[test]
+#[serial]
 fn test_initial_download() {
     let ctx = TestContext::new();
 
@@ -41,6 +43,7 @@ fn test_initial_download() {
 
 /// Test pushing a new task to the server.
 #[test]
+#[serial]
 fn test_push_new_task() {
     let ctx = TestContext::new();
 
@@ -78,6 +81,7 @@ fn test_push_new_task() {
 /// NOTE: This test documents a known bug where hrefs mismatch between push (full URL) and pull (relative path).
 /// The task ID changes after sync due to recreate. We work around by finding the task after sync.
 #[test]
+#[serial]
 fn test_push_update_task() {
     let ctx = TestContext::new();
 
@@ -133,6 +137,7 @@ fn test_push_update_task() {
 
 /// Test that completing a task syncs properly.
 #[test]
+#[serial]
 fn test_push_complete_task() {
     let ctx = TestContext::new();
 
@@ -189,6 +194,7 @@ fn test_push_complete_task() {
 
 /// Test pulling changes from the server.
 #[test]
+#[serial]
 fn test_pull_server_changes() {
     let ctx = TestContext::new();
 
@@ -223,6 +229,7 @@ fn test_pull_server_changes() {
 
 /// Test pulling a deletion from the server.
 #[test]
+#[serial]
 fn test_pull_server_deletion() {
     let ctx = TestContext::new();
 
@@ -257,6 +264,7 @@ fn test_pull_server_deletion() {
 
 /// Test that unchanged collection skips pull (CTag optimization).
 #[test]
+#[serial]
 fn test_ctag_skip_unchanged() {
     let ctx = TestContext::new();
 
@@ -279,6 +287,7 @@ fn test_ctag_skip_unchanged() {
 
 /// Test sync status command shows pending changes.
 #[test]
+#[serial]
 fn test_sync_status_shows_pending() {
     let ctx = TestContext::new();
 
@@ -312,4 +321,91 @@ fn test_sync_status_shows_pending() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Pending changes: 0"));
+}
+
+/// Test creating a list with --account flag creates calendar on server via MKCALENDAR.
+#[test]
+#[serial]
+fn test_create_synced_list() {
+    let ctx = TestContext::new();
+
+    // 1. Add account (this discovers calendar_home_url)
+    ctx.add_account().expect("Failed to add account");
+
+    // 2. Create a list with --account flag
+    ctx.cli()
+        .args(["list", "add", "Test MKCALENDAR List", "--account", "1", "--color", "#3b82f6"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Created list #"));
+
+    // 3. Verify list exists in local database with caldav_url
+    let output = ctx
+        .cli()
+        .args(["--format", "json", "list", "list"])
+        .output()
+        .expect("Failed to list");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("Test MKCALENDAR List"),
+        "List should be in local database"
+    );
+    assert!(
+        stdout.contains("caldav_url"),
+        "List should have caldav_url set"
+    );
+
+    // 4. Verify calendar was actually created on the server
+    // We can check this by doing a PROPFIND on the calendar home
+    let calendar_exists = ctx.check_calendar_exists_on_server("test-mkcalendar-list");
+    assert!(
+        calendar_exists,
+        "Calendar should exist on the CalDAV server"
+    );
+}
+
+/// Test deleting a synced list removes it from the CalDAV server.
+#[test]
+#[serial]
+fn test_delete_synced_list() {
+    let ctx = TestContext::new();
+
+    // 1. Setup - create calendar and add account
+    ctx.create_calendar().expect("Failed to create calendar");
+    ctx.add_account().expect("Failed to add account");
+
+    // 2. Sync account to import the calendar as a list
+    let list_id = ctx.sync_account(1).expect("Failed to sync account");
+
+    // 3. Verify list exists (check for the caldav_url since IDs may have spaces in JSON)
+    ctx.cli()
+        .args(["--format", "json", "list", "list"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(&ctx.calendar_url));
+
+    // 4. Delete the list
+    ctx.cli()
+        .args(["list", "delete", &list_id.to_string()])
+        .assert()
+        .success();
+
+    // 5. Verify list is gone from local database (check caldav_url is gone)
+    let output = ctx
+        .cli()
+        .args(["--format", "json", "list", "list"])
+        .output()
+        .expect("Failed to list");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains(&ctx.calendar_url),
+        "List should be removed from local database"
+    );
+
+    // 6. Verify calendar was deleted from the server
+    let calendar_exists = ctx.calendar_exists_on_server();
+    assert!(
+        !calendar_exists,
+        "Calendar should be deleted from the CalDAV server"
+    );
 }

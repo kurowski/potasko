@@ -173,8 +173,8 @@ async fn handle_list_command(
             Err(e) => Err(e.to_string()),
         },
 
-        ListCommands::Add { name, color } => {
-            let data = CreateTaskList { name, color };
+        ListCommands::Add { name, color, account } => {
+            let data = CreateTaskList { name, color, account_id: account };
 
             match core::lists::create_list(data, pool).await {
                 Ok(list) => {

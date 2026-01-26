@@ -172,6 +172,7 @@ dirs = "6.0"
 - [x] Detect 412 Precondition Failed
 - [x] Server-wins conflict resolution (fetch and overwrite local)
 - [x] Eager sync (single-task push on mutation)
+- [ ] Eager sync on account creation (currently waits for manual/background sync)
 - [x] Offline change queue with retry (error tracking, auto-retry on sync)
 - [x] Background sync scheduler (5 min interval + Tauri events)
 - [x] Sync logging for debugging

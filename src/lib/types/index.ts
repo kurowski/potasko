@@ -57,6 +57,7 @@ export interface TaskList {
 export interface CreateTaskList {
   name: string;
   color?: string | null;
+  account_id?: number | null;
 }
 
 export interface UpdateTaskList {

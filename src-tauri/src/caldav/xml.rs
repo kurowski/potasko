@@ -357,6 +357,28 @@ pub fn parse_resource_list(xml: &str) -> Result<Vec<ResourceMeta>, CalDavError> 
     Ok(resources)
 }
 
+/// Build MKCALENDAR XML body for creating a new calendar/task list.
+pub fn build_mkcalendar_body(display_name: &str, color: Option<&str>) -> String {
+    let color_element = color
+        .map(|c| format!("\n    <a:calendar-color>{}</a:calendar-color>", c))
+        .unwrap_or_default();
+
+    format!(
+        r#"<?xml version="1.0" encoding="utf-8"?>
+<c:mkcalendar xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:a="http://apple.com/ns/ical/">
+  <d:set>
+    <d:prop>
+      <d:displayname>{}</d:displayname>{}
+      <c:supported-calendar-component-set>
+        <c:comp name="VTODO"/>
+      </c:supported-calendar-component-set>
+    </d:prop>
+  </d:set>
+</c:mkcalendar>"#,
+        display_name, color_element
+    )
+}
+
 /// Parse a PROPFIND response to extract just the CTag.
 pub fn parse_ctag_response(xml: &str) -> Result<Option<String>, CalDavError> {
     let doc = Document::parse(xml).map_err(|e| CalDavError::XmlParse(e.to_string()))?;

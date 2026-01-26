@@ -122,6 +122,10 @@ pub enum ListCommands {
         /// Color (hex code like #ff0000)
         #[arg(long, short)]
         color: Option<String>,
+
+        /// Account ID (creates list on CalDAV server)
+        #[arg(long, short)]
+        account: Option<i64>,
     },
     /// Delete a list
     Delete {

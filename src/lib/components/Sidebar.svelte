@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { TaskList } from '$lib/types';
   import { listStore } from '$lib/stores/lists.svelte';
+  import { accountStore } from '$lib/stores/accounts.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
+  import DeleteListModal from './DeleteListModal.svelte';
 
   interface Props {
     showSettings?: boolean;
@@ -37,6 +39,7 @@
   // Add list state
   let newListName = $state('');
   let newListColor = $state(COLORS[0]);
+  let newListAccountId = $state<number | null>(null);
   let isAdding = $state(false);
 
   // Edit list state
@@ -44,14 +47,46 @@
   let editName = $state('');
   let editColor = $state('');
 
+  // Delete modal state
+  let listToDelete = $state<TaskList | null>(null);
+
+  // Group lists by account
+  const groupedLists = $derived(() => {
+    const localLists: TaskList[] = [];
+    const accountLists = new Map<number, TaskList[]>();
+
+    for (const list of listStore.lists) {
+      if (list.account_id === null) {
+        localLists.push(list);
+      } else {
+        const existing = accountLists.get(list.account_id) || [];
+        existing.push(list);
+        accountLists.set(list.account_id, existing);
+      }
+    }
+
+    return { localLists, accountLists };
+  });
+
+  // Get account name by ID
+  function getAccountName(accountId: number): string {
+    const account = accountStore.accounts.find(a => a.id === accountId);
+    return account?.name ?? `Account #${accountId}`;
+  }
+
   async function handleAddList(e: Event) {
     e.preventDefault();
     if (!newListName.trim()) return;
 
     try {
-      await listStore.create({ name: newListName.trim(), color: newListColor });
+      await listStore.create({
+        name: newListName.trim(),
+        color: newListColor,
+        account_id: newListAccountId,
+      });
       newListName = '';
       newListColor = COLORS[0];
+      newListAccountId = null;
       isAdding = false;
     } catch {
       // Error is handled by store
@@ -81,8 +116,14 @@
       isAdding = false;
       newListName = '';
       newListColor = COLORS[0];
+      newListAccountId = null;
       editingList = null;
     }
+  }
+
+  function handleDeleteClick(list: TaskList, e: Event) {
+    e.stopPropagation();
+    listToDelete = list;
   }
 </script>
 
@@ -139,6 +180,14 @@
         placeholder="List name..."
         autofocus
       />
+      {#if accountStore.accounts.length > 0}
+        <select bind:value={newListAccountId} class="account-select">
+          <option value={null}>Local only</option>
+          {#each accountStore.accounts as account (account.id)}
+            <option value={account.id}>{account.name}</option>
+          {/each}
+        </select>
+      {/if}
       <div class="color-picker">
         {#each COLORS as color}
           <button
@@ -153,58 +202,136 @@
       </div>
       <div class="form-buttons">
         <button type="submit" class="primary" disabled={!newListName.trim()}>Add</button>
-        <button type="button" onclick={() => { isAdding = false; newListName = ''; newListColor = COLORS[0]; }}>Cancel</button>
+        <button type="button" onclick={() => { isAdding = false; newListName = ''; newListColor = COLORS[0]; newListAccountId = null; }}>Cancel</button>
       </div>
     </form>
   {/if}
 
   <nav class="list-nav">
-    {#each listStore.lists as list (list.id)}
-      {#if editingList?.id === list.id}
-        <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
-          <input
-            type="text"
-            bind:value={editName}
-            autofocus
-          />
-          <div class="color-picker">
-            {#each COLORS as color}
-              <button
-                type="button"
-                class="color-option"
-                class:selected={editColor === color}
-                style:background-color={color}
-                onclick={() => editColor = color}
-                title={color}
-              ></button>
-            {/each}
-          </div>
-          <div class="form-buttons">
-            <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
-            <button type="button" onclick={() => editingList = null}>Cancel</button>
-          </div>
-        </form>
-      {:else}
-        <div
-          class="list-item"
-          class:selected={list.id === listStore.selectedListId}
-        >
-          <button
-            type="button"
-            class="list-color-btn"
-            style:background-color={list.color ?? '#6b7280'}
-            onclick={() => startEdit(list)}
-            title="Edit list"
-          ></button>
-          <button
-            type="button"
-            class="list-name-btn"
-            onclick={() => handleNavigation(() => listStore.select(list.id))}
+    <!-- Local lists section -->
+    {#if groupedLists().localLists.length > 0}
+      <div class="list-section-header">Local</div>
+      {#each groupedLists().localLists as list (list.id)}
+        {#if editingList?.id === list.id}
+          <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
+            <input
+              type="text"
+              bind:value={editName}
+              autofocus
+            />
+            <div class="color-picker">
+              {#each COLORS as color}
+                <button
+                  type="button"
+                  class="color-option"
+                  class:selected={editColor === color}
+                  style:background-color={color}
+                  onclick={() => editColor = color}
+                  title={color}
+                ></button>
+              {/each}
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
+              <button type="button" onclick={() => editingList = null}>Cancel</button>
+            </div>
+          </form>
+        {:else}
+          <div
+            class="list-item"
+            class:selected={list.id === listStore.selectedListId}
           >
-            {list.name}
-          </button>
-        </div>
-      {/if}
+            <button
+              type="button"
+              class="list-color-btn"
+              style:background-color={list.color ?? '#6b7280'}
+              onclick={() => startEdit(list)}
+              title="Edit list"
+            ></button>
+            <button
+              type="button"
+              class="list-name-btn"
+              onclick={() => handleNavigation(() => listStore.select(list.id))}
+            >
+              {list.name}
+            </button>
+            <button
+              type="button"
+              class="delete-btn"
+              class:mobile={isMobile}
+              onclick={(e) => handleDeleteClick(list, e)}
+              title="Delete list"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
+          </div>
+        {/if}
+      {/each}
+    {/if}
+
+    <!-- Account lists sections -->
+    {#each [...groupedLists().accountLists.entries()] as [accountId, lists] (accountId)}
+      <div class="list-section-header">{getAccountName(accountId)}</div>
+      {#each lists as list (list.id)}
+        {#if editingList?.id === list.id}
+          <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
+            <input
+              type="text"
+              bind:value={editName}
+              autofocus
+            />
+            <div class="color-picker">
+              {#each COLORS as color}
+                <button
+                  type="button"
+                  class="color-option"
+                  class:selected={editColor === color}
+                  style:background-color={color}
+                  onclick={() => editColor = color}
+                  title={color}
+                ></button>
+              {/each}
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
+              <button type="button" onclick={() => editingList = null}>Cancel</button>
+            </div>
+          </form>
+        {:else}
+          <div
+            class="list-item"
+            class:selected={list.id === listStore.selectedListId}
+          >
+            <button
+              type="button"
+              class="list-color-btn"
+              style:background-color={list.color ?? '#6b7280'}
+              onclick={() => startEdit(list)}
+              title="Edit list"
+            ></button>
+            <button
+              type="button"
+              class="list-name-btn"
+              onclick={() => handleNavigation(() => listStore.select(list.id))}
+            >
+              {list.name}
+            </button>
+            <button
+              type="button"
+              class="delete-btn"
+              class:mobile={isMobile}
+              onclick={(e) => handleDeleteClick(list, e)}
+              title="Delete list"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              </svg>
+            </button>
+          </div>
+        {/if}
+      {/each}
     {/each}
   </nav>
 
@@ -233,6 +360,10 @@
     </button>
   </div>
 </aside>
+
+{#if listToDelete}
+  <DeleteListModal list={listToDelete} onClose={() => listToDelete = null} />
+{/if}
 
 <style>
   .sidebar {
@@ -349,6 +480,17 @@
     background: var(--bg-primary);
   }
 
+  .account-select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 44px;
+  }
+
   .color-picker {
     display: flex;
     gap: 0.375rem;
@@ -443,6 +585,20 @@
     padding: 0.5rem;
   }
 
+  .list-section-header {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 0.75rem 0.75rem 0.375rem;
+    margin-top: 0.25rem;
+  }
+
+  .list-section-header:first-child {
+    margin-top: 0;
+  }
+
   .list-item {
     width: 100%;
     display: flex;
@@ -491,6 +647,49 @@
 
   .list-name-btn:hover {
     background: var(--bg-hover);
+  }
+
+  .delete-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    opacity: 0;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .delete-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .list-item:hover .delete-btn {
+    opacity: 1;
+  }
+
+  .delete-btn:hover {
+    background: var(--error-color, #ef4444);
+    color: white;
+  }
+
+  /* Mobile: always show delete button */
+  .delete-btn.mobile {
+    opacity: 1;
+    width: 44px;
+    height: 44px;
+  }
+
+  .delete-btn.mobile svg {
+    width: 18px;
+    height: 18px;
   }
 
   .error {

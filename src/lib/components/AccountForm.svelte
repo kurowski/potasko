@@ -24,7 +24,20 @@
   let principalUrl = $state<string | null>(untrack(() => account?.principal_url ?? null));
   let calendarHomeUrl = $state<string | null>(untrack(() => account?.calendar_home_url ?? null));
   let discoveredCalendars = $state<CalendarInfo[]>([]);
-  let connectionTested = $state(false);
+
+  // Track what connection params were tested to detect changes
+  let testedServerUrl = $state<string | null>(null);
+  let testedUsername = $state<string | null>(null);
+  let testedPassword = $state<string | null>(null);
+
+  // Connection is valid only if params match what was tested
+  const connectionValid = $derived(
+    principalUrl !== null &&
+    calendarHomeUrl !== null &&
+    testedServerUrl === serverUrl.trim() &&
+    testedUsername === username.trim() &&
+    testedPassword === password.trim()
+  );
 
   async function handleTestConnection() {
     if (!serverUrl.trim() || !username.trim() || !password.trim()) return;
@@ -35,11 +48,18 @@
         principalUrl = result.principal_url;
         calendarHomeUrl = result.calendar_home_url;
         discoveredCalendars = result.calendars;
-        connectionTested = true;
+        // Remember which params were successfully tested
+        testedServerUrl = serverUrl.trim();
+        testedUsername = username.trim();
+        testedPassword = password.trim();
       }
     } catch {
       // Error handled by store
-      connectionTested = false;
+      principalUrl = null;
+      calendarHomeUrl = null;
+      testedServerUrl = null;
+      testedUsername = null;
+      testedPassword = null;
     }
   }
 
@@ -79,18 +99,25 @@
     }
   }
 
-  // Reset test results when connection params change
+  // Clear test result display when connection params change (after initial test)
+  let hasTestedOnce = $state(false);
   $effect(() => {
-    // Track these to trigger reset
+    // Track connection params
     serverUrl; username; password;
-    // Reset if params changed after a successful test
-    if (connectionTested) {
-      connectionTested = false;
-      principalUrl = null;
-      calendarHomeUrl = null;
+    // Only clear if we've tested before (avoid clearing on mount)
+    if (hasTestedOnce && !connectionValid) {
       discoveredCalendars = [];
+      accountStore.clearTestResult();
     }
   });
+
+  // Mark that we've tested when test completes
+  $effect(() => {
+    if (connectionValid) {
+      hasTestedOnce = true;
+    }
+  });
+
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -194,11 +221,15 @@
     <button
       type="submit"
       class="primary"
-      disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving}
+      disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving || (!isEditing && !connectionValid)}
+      title={!isEditing && !connectionValid ? 'Test connection first' : ''}
     >
       {saving ? 'Saving...' : isEditing ? 'Save' : 'Add Account'}
     </button>
   </div>
+  {#if !isEditing && !connectionValid && name.trim() && serverUrl.trim() && username.trim() && password.trim()}
+    <p class="hint">Please test the connection before adding the account.</p>
+  {/if}
 </form>
 
 <style>
@@ -371,5 +402,12 @@
 
   .form-actions button:not(.primary):hover:not(:disabled) {
     background: var(--bg-hover);
+  }
+
+  .hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-align: right;
   }
 </style>

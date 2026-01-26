@@ -65,6 +65,10 @@ export async function getTasksOverdue(): Promise<Task[]> {
   return invoke('get_tasks_overdue');
 }
 
+export async function getTaskCount(listId: number): Promise<number> {
+  return invoke('get_task_count', { listId });
+}
+
 // --- Account commands ---
 
 import type {
