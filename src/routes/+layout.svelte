@@ -3,6 +3,8 @@
   import 'carbon-components-svelte/css/all.css';
   import { Theme } from 'carbon-components-svelte';
 
+  let { children } = $props();
+
   let theme = $state('white');
 
   $effect(() => {
@@ -20,4 +22,4 @@
 
 <Theme bind:theme />
 
-<slot />
+{@render children()}

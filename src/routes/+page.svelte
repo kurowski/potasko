@@ -8,34 +8,30 @@
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
   import AccountList from '$lib/components/AccountList.svelte';
+  import {
+    Header,
+    HeaderUtilities,
+    HeaderGlobalAction,
+    SideNav,
+    SideNavItems,
+    Content,
+    Breakpoint,
+    ComposedModal,
+    ModalHeader,
+    ModalBody,
+  } from 'carbon-components-svelte';
+  import { Settings, Add, Close } from 'carbon-icons-svelte';
 
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
   let showMobileForm = $state(false);
 
-  // Mobile responsiveness state
-  const MOBILE_BREAKPOINT = 768;
-  let isMobile = $state(false);
+  // Mobile responsiveness using Carbon's Breakpoint
+  let breakpointSize: 'sm' | 'md' | 'lg' | 'xlg' | 'max' = $state('lg');
+  const isMobile = $derived(breakpointSize === 'sm' || breakpointSize === 'md');
   let sidebarOpen = $state(false);
 
-  function checkMobile() {
-    const wasMobile = isMobile;
-    isMobile = window.innerWidth < MOBILE_BREAKPOINT;
-    // Close sidebar when switching to desktop mode
-    if (wasMobile && !isMobile) {
-      sidebarOpen = false;
-    }
-  }
-
-  function toggleSidebar() {
-    sidebarOpen = !sidebarOpen;
-  }
-
-  function closeSidebar() {
-    sidebarOpen = false;
-  }
-
-  // Get current view title for mobile header
+  // Get current view title for header
   const currentViewTitle = $derived(() => {
     if (showSettings) return 'Settings';
     const view = listStore.selectedView;
@@ -50,8 +46,6 @@
   // Load lists on mount
   onMount(() => {
     listStore.load();
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
 
     // Setup sync event listeners to reload tasks when sync completes
     syncStore.setupEventListeners((listId) => {
@@ -63,7 +57,6 @@
     });
 
     return () => {
-      window.removeEventListener('resize', checkMobile);
       syncStore.cleanup();
     };
   });
@@ -105,110 +98,74 @@
   }
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="app-layout" class:mobile={isMobile}>
-  {#if isMobile}
-    <header class="mobile-header">
-      <button class="hamburger-btn" onclick={toggleSidebar} aria-label="Toggle menu">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-      <h1>{currentViewTitle()}</h1>
-    </header>
-  {/if}
+<Breakpoint bind:size={breakpointSize} />
 
-  <Sidebar
-    {showSettings}
-    onToggleSettings={handleToggleSettings}
-    {isMobile}
-    isOpen={sidebarOpen}
-    onClose={closeSidebar}
-  />
+<Header company="Potasko" platformName={isMobile ? currentViewTitle() : ''} bind:isSideNavOpen={sidebarOpen}>
+  <HeaderUtilities>
+    <HeaderGlobalAction
+      aria-label="Settings"
+      icon={Settings}
+      isActive={showSettings}
+      on:click={handleToggleSettings}
+    />
+  </HeaderUtilities>
+</Header>
 
-  {#if isMobile && sidebarOpen}
-    <div class="backdrop visible" onclick={closeSidebar}></div>
-  {/if}
+<SideNav bind:isOpen={sidebarOpen} rail={!isMobile}>
+  <SideNavItems>
+    <Sidebar
+      {showSettings}
+      onToggleSettings={handleToggleSettings}
+      {isMobile}
+      onClose={() => sidebarOpen = false}
+    />
+  </SideNavItems>
+</SideNav>
 
-  <main class="main-content">
-    {#if showSettings}
-      <div class="settings-panel">
-        <AccountList />
-      </div>
-    {:else if listStore.selectedView}
-      <TaskListView onEditTask={handleEditTask} />
-      {#if canAddTasks}
-        {#if !isMobile}
-          <!-- Desktop: inline form -->
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
-        {/if}
+<Content>
+  {#if showSettings}
+    <div class="settings-panel">
+      <AccountList />
+    </div>
+  {:else if listStore.selectedView}
+    <TaskListView onEditTask={handleEditTask} />
+    {#if canAddTasks}
+      {#if !isMobile}
+        <!-- Desktop: inline form -->
+        {#key editingTask?.id}
+          <TaskForm task={editingTask} onClose={handleCloseEdit} />
+        {/key}
       {/if}
-    {:else if listStore.loading}
-      <div class="loading-state">Loading...</div>
-    {:else}
-      <div class="empty-state">
-        <p>No lists yet</p>
-        <p>Create a list to get started</p>
-      </div>
     {/if}
-  </main>
-
-  <!-- Mobile: FAB and modal form -->
-  {#if isMobile && canAddTasks && !showSettings}
-    {#if showMobileForm}
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <div class="form-modal-backdrop" onclick={handleCloseEdit}>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="form-modal" onclick={(e) => e.stopPropagation()}>
-          <div class="form-modal-handle"></div>
-          <div class="form-modal-header">
-            <span>{editingTask ? 'Edit Task' : 'New Task'}</span>
-            <button class="form-modal-close" onclick={handleCloseEdit} aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
-        </div>
-      </div>
-    {:else}
-      <button class="fab" onclick={handleFabClick} aria-label="Add task">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
-    {/if}
+  {:else if listStore.loading}
+    <div class="loading-state">Loading...</div>
+  {:else}
+    <div class="empty-state">
+      <p>No lists yet</p>
+      <p>Create a list to get started</p>
+    </div>
   {/if}
-</div>
+</Content>
+
+<!-- Mobile: FAB and modal form -->
+{#if isMobile && canAddTasks && !showSettings}
+  {#if showMobileForm}
+    <ComposedModal open={true} on:close={handleCloseEdit} class="task-form-modal">
+      <ModalHeader title={editingTask ? 'Edit Task' : 'New Task'} />
+      <ModalBody>
+        {#key editingTask?.id}
+          <TaskForm task={editingTask} onClose={handleCloseEdit} />
+        {/key}
+      </ModalBody>
+    </ComposedModal>
+  {:else}
+    <button class="fab" onclick={handleFabClick} aria-label="Add task">
+      <Add size={24} />
+    </button>
+  {/if}
+{/if}
 
 <style>
-  .app-layout {
-    display: flex;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .app-layout.mobile {
-    flex-direction: column;
-  }
-
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-  }
-
   .loading-state,
   .empty-state {
     flex: 1;
@@ -216,7 +173,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
+    color: var(--cds-text-secondary, var(--text-secondary));
+    min-height: 200px;
   }
 
   .empty-state p {
@@ -224,19 +182,10 @@
   }
 
   .settings-panel {
-    flex: 1;
-    padding: 1.5rem;
-    overflow-y: auto;
-    background: var(--bg-primary);
+    padding: 1rem;
   }
 
-  @media (max-width: 768px) {
-    .settings-panel {
-      padding: 1rem;
-    }
-  }
-
-  /* Floating Action Button */
+  /* Floating Action Button - styled with Carbon tokens */
   .fab {
     position: fixed;
     bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
@@ -244,104 +193,30 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: var(--accent-color);
-    color: white;
+    background: var(--cds-interactive, var(--accent-color, #0f62fe));
+    color: var(--cds-text-on-color, white);
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    z-index: 100;
+    z-index: 8000;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   .fab:hover {
     transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background: var(--cds-interactive-hover, #0353e9);
   }
 
   .fab:active {
     transform: scale(0.95);
   }
 
-  .fab svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  /* Mobile form modal */
-  .form-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 200;
-    display: flex;
-    align-items: flex-end;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .form-modal {
-    width: 100%;
-    background: var(--bg-primary);
-    border-radius: 16px 16px 0 0;
-    animation: slideUp 0.3s ease;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .form-modal-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border-color);
-    border-radius: 2px;
-    margin: 8px auto;
-  }
-
-  .form-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem 0.5rem;
-    font-weight: 600;
-  }
-
-  .form-modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    border-radius: 50%;
-  }
-
-  .form-modal-close:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .form-modal-close svg {
-    width: 20px;
-    height: 20px;
-  }
-
   /* Remove TaskForm border when in modal */
-  .form-modal :global(.task-form) {
-    border-top: none;
+  :global(.task-form-modal .bx--modal-content) {
     padding-top: 0;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
   }
 </style>
