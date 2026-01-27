@@ -1,0 +1,160 @@
+/* Carbon Design System overrides for Potasko */
+
+/* ============================================
+   Safe Area Insets (notched devices)
+   ============================================ */
+
+/* Header - account for notch/status bar */
+.bx--header {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Content - account for bottom safe area */
+.bx--content {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* SideNav - account for safe areas */
+.bx--side-nav {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* ============================================
+   Mobile Bottom Sheet Modal
+   ============================================ */
+
+/* On mobile, position modals at bottom like a bottom sheet */
+@media (max-width: 1056px) {
+  .bx--modal-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 90vh;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(100%);
+    animation: slideUp 0.3s ease forwards;
+  }
+
+  .bx--modal.is-visible .bx--modal-container {
+    transform: translateY(0);
+  }
+
+  /* Add drag handle appearance */
+  .bx--modal-header::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--cds-border-subtle, #e0e0e0);
+    border-radius: 2px;
+    margin: 0 auto 0.5rem;
+  }
+
+  /* Account for bottom safe area in modal footer */
+  .bx--modal-footer {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   Touch Target Improvements
+   ============================================ */
+
+@media (max-width: 1056px) {
+  /* Larger checkboxes for touch */
+  .bx--checkbox-label::before,
+  .bx--checkbox-label::after {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Ensure buttons meet touch target guidelines */
+  .bx--btn--sm {
+    min-height: 44px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Larger form inputs on mobile */
+  .bx--text-input,
+  .bx--text-area,
+  .bx--select-input,
+  .bx--date-picker__input {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}
+
+/* ============================================
+   SideNav Tweaks
+   ============================================ */
+
+/* Ensure SideNav items have adequate touch targets on mobile */
+@media (max-width: 1056px) {
+  .bx--side-nav__link,
+  .bx--side-nav__menu-item {
+    min-height: 48px;
+  }
+}
+
+/* Fix SideNav menu text overflow */
+.bx--side-nav__link-text,
+.bx--side-nav__menu-item > .bx--side-nav__link-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================
+   DataTable Mobile Adjustments
+   ============================================ */
+
+@media (max-width: 1056px) {
+  /* Allow horizontal scroll on small screens */
+  .bx--data-table-container {
+    overflow-x: auto;
+  }
+
+  .bx--data-table {
+    min-width: 500px;
+  }
+}
+
+/* ============================================
+   Accordion Tweaks
+   ============================================ */
+
+/* Reduce padding in accordion content for task lists */
+.bx--accordion__content {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ============================================
+   Form Layout Improvements
+   ============================================ */
+
+/* Better spacing for form groups */
+.bx--form-item {
+  margin-bottom: 1rem;
+}
+
+/* DatePicker calendar positioning */
+.bx--date-picker--single .bx--date-picker__calendar {
+  z-index: 9100;
+}

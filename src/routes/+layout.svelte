@@ -1,6 +1,7 @@
 <script>
   import '../app.css';
   import 'carbon-components-svelte/css/all.css';
+  import '$lib/carbon-overrides.css';
   import { Theme } from 'carbon-components-svelte';
 
   let { children } = $props();
