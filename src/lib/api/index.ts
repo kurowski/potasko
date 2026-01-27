@@ -74,6 +74,7 @@ export async function getTaskCount(listId: number): Promise<number> {
 import type {
   Account,
   CreateAccount,
+  CreateAccountResult,
   UpdateAccount,
   AccountTestResult,
 } from '$lib/types';
@@ -88,6 +89,10 @@ export async function getAccount(id: number): Promise<Account> {
 
 export async function createAccount(data: CreateAccount): Promise<Account> {
   return invoke('create_account', { data });
+}
+
+export async function createAccountAndSync(data: CreateAccount): Promise<CreateAccountResult> {
+  return invoke('create_account_and_sync', { data });
 }
 
 export async function updateAccount(id: number, data: UpdateAccount): Promise<Account> {

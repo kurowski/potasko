@@ -97,6 +97,11 @@ export interface UpdateAccount {
   calendar_home_url?: string | null;
 }
 
+export interface CreateAccountResult {
+  account: Account;
+  sync_result: AccountSyncResult;
+}
+
 // --- CalDAV types ---
 
 export interface CalendarInfo {

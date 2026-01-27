@@ -17,7 +17,7 @@ pub use caldav::{CalDavClient, AccountTestResult, CalendarInfo};
 
 use commands::{
     // Account commands
-    get_accounts, get_account, create_account, update_account, delete_account,
+    get_accounts, get_account, create_account, create_account_and_sync, update_account, delete_account,
     test_account_connection,
     // List commands
     get_lists, get_list, create_list, update_list, delete_list,
@@ -68,6 +68,7 @@ pub fn run() {
             get_accounts,
             get_account,
             create_account,
+            create_account_and_sync,
             update_account,
             delete_account,
             test_account_connection,

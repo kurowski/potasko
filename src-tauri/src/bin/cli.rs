@@ -248,9 +248,21 @@ async fn handle_account_command(
                 calendar_home_url,
             };
 
-            match core::accounts::create_account(data, pool).await {
-                Ok(account) => {
-                    print_success(&format!("Created account #{}: {}", account.id, account.name));
+            print_success("Creating account and syncing calendars...");
+            match core::accounts::create_account_and_sync(data, pool).await {
+                Ok(result) => {
+                    print_success(&format!("Created account #{}: {}", result.account.id, result.account.name));
+                    if result.sync_result.calendars_imported > 0 {
+                        print_success(&format!(
+                            "Imported {} calendar(s)",
+                            result.sync_result.calendars_imported
+                        ));
+                    }
+                    if !result.sync_result.success {
+                        if let Some(err) = &result.sync_result.error {
+                            eprintln!("Sync warning: {}", err);
+                        }
+                    }
                     Ok(())
                 }
                 Err(e) => Err(e.to_string()),

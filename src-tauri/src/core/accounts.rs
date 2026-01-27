@@ -1,5 +1,6 @@
 use crate::caldav::{AccountTestResult, CalDavClient};
 use crate::models::{Account, CreateAccount, UpdateAccount};
+use crate::sync::{AccountSyncResult, SyncEngine};
 use chrono::Utc;
 use sqlx::SqlitePool;
 
@@ -7,6 +8,13 @@ use super::error::CoreError;
 use super::tasks::parse_datetime;
 
 type Result<T> = std::result::Result<T, CoreError>;
+
+/// Result of creating an account with immediate sync.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct CreateAccountResult {
+    pub account: Account,
+    pub sync_result: AccountSyncResult,
+}
 
 /// Get all accounts.
 pub async fn get_accounts(pool: &SqlitePool) -> Result<Vec<Account>> {
@@ -115,6 +123,24 @@ pub async fn delete_account(id: i64, pool: &SqlitePool) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Create an account and immediately sync to import calendars.
+pub async fn create_account_and_sync(
+    data: CreateAccount,
+    pool: &SqlitePool,
+) -> Result<CreateAccountResult> {
+    // 1. Create the account
+    let account = create_account(data, pool).await?;
+
+    // 2. Sync the account to discover and import calendars
+    let engine = SyncEngine::new(SqlitePool::clone(pool));
+    let sync_result = engine.sync_account(account.id).await;
+
+    Ok(CreateAccountResult {
+        account,
+        sync_result,
+    })
 }
 
 /// Test a CalDAV connection and discover endpoints.

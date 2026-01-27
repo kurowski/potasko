@@ -1,6 +1,7 @@
 <script lang="ts">
   import { untrack } from 'svelte';
   import { accountStore } from '$lib/stores/accounts.svelte';
+  import { listStore } from '$lib/stores/lists.svelte';
   import type { Account, CalendarInfo } from '$lib/types';
 
   interface Props {
@@ -81,7 +82,10 @@
       if (isEditing && account) {
         await accountStore.update(account.id, data);
       } else {
-        await accountStore.create(data);
+        // Create account and immediately sync to import calendars
+        await accountStore.createAndSync(data);
+        // Refresh lists after sync imports calendars
+        listStore.load();
       }
 
       onSaved?.();
@@ -224,7 +228,15 @@
       disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving || (!isEditing && !connectionValid)}
       title={!isEditing && !connectionValid ? 'Test connection first' : ''}
     >
-      {saving ? 'Saving...' : isEditing ? 'Save' : 'Add Account'}
+      {#if saving && isEditing}
+        Saving...
+      {:else if saving}
+        Adding & Syncing...
+      {:else if isEditing}
+        Save
+      {:else}
+        Add Account
+      {/if}
     </button>
   </div>
   {#if !isEditing && !connectionValid && name.trim() && serverUrl.trim() && username.trim() && password.trim()}

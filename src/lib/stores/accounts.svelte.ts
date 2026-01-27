@@ -1,5 +1,5 @@
 // CalDAV accounts store using Svelte 5 runes
-import type { Account, CreateAccount, UpdateAccount, AccountTestResult } from '$lib/types';
+import type { Account, CreateAccount, UpdateAccount, AccountTestResult, CreateAccountResult } from '$lib/types';
 import * as api from '$lib/api';
 
 // Reactive state
@@ -28,6 +28,18 @@ async function create(data: CreateAccount) {
     const newAccount = await api.createAccount(data);
     accounts = [...accounts, newAccount];
     return newAccount;
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+    throw e;
+  }
+}
+
+async function createAndSync(data: CreateAccount): Promise<CreateAccountResult> {
+  error = null;
+  try {
+    const result = await api.createAccountAndSync(data);
+    accounts = [...accounts, result.account];
+    return result;
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
     throw e;
@@ -92,6 +104,7 @@ export const accountStore = {
   get testResult() { return testResult; },
   load,
   create,
+  createAndSync,
   update,
   remove,
   testConnection,

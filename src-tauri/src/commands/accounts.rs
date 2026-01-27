@@ -3,8 +3,10 @@
 
 use crate::caldav::AccountTestResult;
 use crate::core;
+use crate::core::accounts::CreateAccountResult;
 use crate::models::{Account, CreateAccount, UpdateAccount};
 use crate::DbState;
+use sqlx::SqlitePool;
 use tauri::State;
 
 #[tauri::command]
@@ -24,6 +26,18 @@ pub async fn get_account(id: i64, db: State<'_, DbState>) -> Result<Account, Str
 #[tauri::command]
 pub async fn create_account(data: CreateAccount, db: State<'_, DbState>) -> Result<Account, String> {
     core::accounts::create_account(data, db.0.as_ref())
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Create an account and immediately sync to import calendars.
+#[tauri::command]
+pub async fn create_account_and_sync(
+    data: CreateAccount,
+    db: State<'_, DbState>,
+) -> Result<CreateAccountResult, String> {
+    let pool = SqlitePool::clone(db.0.as_ref());
+    core::accounts::create_account_and_sync(data, &pool)
         .await
         .map_err(|e| e.to_string())
 }
