@@ -14,6 +14,15 @@ importers:
       '@tauri-apps/plugin-opener':
         specifier: ^2
         version: 2.5.2
+      carbon-components-svelte:
+        specifier: ^0.99.0
+        version: 0.99.0
+      carbon-icons-svelte:
+        specifier: ^13.8.0
+        version: 13.8.0
+      carbon-preprocess-svelte:
+        specifier: ^0.11.23
+        version: 0.11.23
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3.0.6
@@ -373,6 +382,10 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@ibm/telemetry-js@1.11.0':
+    resolution: {integrity: sha512-RO/9j+URJnSfseWg9ZkEX9p+a3Ousd33DBU7rOafoZB08RqdzxFVYJ2/iM50dkBuD0o7WX7GYt1sLbNgCoE+pA==}
+    hasBin: true
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -1099,6 +1112,15 @@ packages:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
 
+  carbon-components-svelte@0.99.0:
+    resolution: {integrity: sha512-h5S4/kaKa30q3nLLky4G8MTw25j6ZHtpBifdoxvC63Q2YTdaBv91OID+L0m70XRvNHCoxgi7ewfEZqzfsaZ03A==}
+
+  carbon-icons-svelte@13.8.0:
+    resolution: {integrity: sha512-1sTbSOhiKjs7BXj2Ctk6tekSNX4DLUy9miNeYaQK/jeveM4x/+et09JH8xnrwRE1QseLdRd3sOoVwqPZEYsdkA==}
+
+  carbon-preprocess-svelte@0.11.23:
+    resolution: {integrity: sha512-ftMbHZpsYRf1Vd4AepihhbN6iUGKW96F/BKr4Z8xkRt1VNujFYE+a0U6A4wzwGJiUvLfb1CyE+QFTCLgMGaueQ==}
+
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
@@ -1445,6 +1467,9 @@ packages:
   flat@5.0.2:
     resolution: {integrity: sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==}
     hasBin: true
+
+  flatpickr@4.6.9:
+    resolution: {integrity: sha512-F0azNNi8foVWKSF+8X+ZJzz8r9sE1G4hl06RyceIaLvyltKvDl6vqk9Lm/6AUUCi5HWaIjiUbk7UpeE/fOXOpw==}
 
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
@@ -2599,6 +2624,8 @@ snapshots:
   '@esbuild/win32-x64@0.27.2':
     optional: true
 
+  '@ibm/telemetry-js@1.11.0': {}
+
   '@inquirer/ansi@1.0.2': {}
 
   '@inquirer/checkbox@4.3.2(@types/node@25.0.3)':
@@ -3365,6 +3392,15 @@ snapshots:
 
   camelcase@6.3.0: {}
 
+  carbon-components-svelte@0.99.0:
+    dependencies:
+      '@ibm/telemetry-js': 1.11.0
+      flatpickr: 4.6.9
+
+  carbon-icons-svelte@13.8.0: {}
+
+  carbon-preprocess-svelte@0.11.23: {}
+
   chalk@4.1.2:
     dependencies:
       ansi-styles: 4.3.0
@@ -3788,6 +3824,8 @@ snapshots:
       path-exists: 5.0.0
 
   flat@5.0.2: {}
+
+  flatpickr@4.6.9: {}
 
   foreground-child@3.3.1:
     dependencies:
