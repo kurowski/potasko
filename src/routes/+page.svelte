@@ -24,7 +24,7 @@
 
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
-  let showMobileForm = $state(false);
+  let showTaskForm = $state(false);
 
   // Mobile responsiveness using Carbon's Breakpoint
   let breakpointSize: 'sm' | 'md' | 'lg' | 'xlg' | 'max' = $state('lg');
@@ -78,23 +78,21 @@
 
   function handleEditTask(task: Task) {
     editingTask = task;
-    if (isMobile) {
-      showMobileForm = true;
-    }
+    showTaskForm = true;
   }
 
   function handleCloseEdit() {
     editingTask = null;
-    showMobileForm = false;
+    showTaskForm = false;
   }
 
   function handleToggleSettings() {
     showSettings = !showSettings;
   }
 
-  function handleFabClick() {
+  function handleAddTask() {
     editingTask = null;
-    showMobileForm = true;
+    showTaskForm = true;
   }
 </script>
 
@@ -129,14 +127,6 @@
     </div>
   {:else if listStore.selectedView}
     <TaskListView onEditTask={handleEditTask} />
-    {#if canAddTasks}
-      {#if !isMobile}
-        <!-- Desktop: inline form -->
-        {#key editingTask?.id}
-          <TaskForm task={editingTask} onClose={handleCloseEdit} />
-        {/key}
-      {/if}
-    {/if}
   {:else if listStore.loading}
     <div class="loading-state">Loading...</div>
   {:else}
@@ -147,22 +137,23 @@
   {/if}
 </Content>
 
-<!-- Mobile: FAB and modal form -->
-{#if isMobile && canAddTasks && !showSettings}
-  {#if showMobileForm}
-    <ComposedModal open={true} on:close={handleCloseEdit} class="task-form-modal">
-      <ModalHeader title={editingTask ? 'Edit Task' : 'New Task'} />
-      <ModalBody>
-        {#key editingTask?.id}
-          <TaskForm task={editingTask} onClose={handleCloseEdit} />
-        {/key}
-      </ModalBody>
-    </ComposedModal>
-  {:else}
-    <button class="fab" onclick={handleFabClick} aria-label="Add task">
-      <Add size={24} />
-    </button>
-  {/if}
+<!-- FAB for adding tasks -->
+{#if canAddTasks && !showSettings && !showTaskForm}
+  <button class="fab" onclick={handleAddTask} aria-label="Add task">
+    <Add size={24} />
+  </button>
+{/if}
+
+<!-- Task form modal (both desktop and mobile) -->
+{#if showTaskForm}
+  <ComposedModal open={true} on:close={handleCloseEdit} class="task-form-modal">
+    <ModalHeader title={editingTask ? 'Edit Task' : 'New Task'} />
+    <ModalBody>
+      {#key editingTask?.id}
+        <TaskForm task={editingTask} onClose={handleCloseEdit} />
+      {/key}
+    </ModalBody>
+  </ComposedModal>
 {/if}
 
 <style>
