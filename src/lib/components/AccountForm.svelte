@@ -3,6 +3,18 @@
   import { accountStore } from '$lib/stores/accounts.svelte';
   import { listStore } from '$lib/stores/lists.svelte';
   import type { Account, CalendarInfo } from '$lib/types';
+  import {
+    Form,
+    TextInput,
+    PasswordInput,
+    Button,
+    ButtonSet,
+    InlineNotification,
+    UnorderedList,
+    ListItem,
+    InlineLoading,
+  } from 'carbon-components-svelte';
+  import { Checkmark, WarningFilled } from 'carbon-icons-svelte';
 
   interface Props {
     account?: Account | null;
@@ -122,111 +134,118 @@
     }
   });
 
+  const taskCalendars = $derived(discoveredCalendars.filter(c => c.supports_vtodo));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
 
-<form class="account-form" onsubmit={handleSubmit}>
+<Form on:submit={handleSubmit} class="account-form">
   <h3>{isEditing ? 'Edit Account' : 'Add CalDAV Account'}</h3>
 
-  <label class="form-field">
-    <span>Account Name</span>
-    <input
-      type="text"
-      bind:value={name}
-      placeholder="e.g., Work, Personal"
-      disabled={saving}
-    />
-  </label>
+  <TextInput
+    bind:value={name}
+    labelText="Account Name"
+    placeholder="e.g., Work, Personal"
+    disabled={saving}
+    required
+  />
 
-  <label class="form-field">
-    <span>Server URL</span>
-    <input
-      type="url"
-      bind:value={serverUrl}
-      placeholder="https://caldav.example.com"
-      disabled={saving}
-    />
-  </label>
+  <TextInput
+    bind:value={serverUrl}
+    labelText="Server URL"
+    placeholder="https://caldav.example.com"
+    disabled={saving}
+    type="url"
+    required
+  />
 
-  <label class="form-field">
-    <span>Username</span>
-    <input
-      type="text"
-      bind:value={username}
-      placeholder="Username"
-      disabled={saving}
-    />
-  </label>
+  <TextInput
+    bind:value={username}
+    labelText="Username"
+    placeholder="Username"
+    disabled={saving}
+    required
+  />
 
-  <label class="form-field">
-    <span>Password</span>
-    <input
-      type="password"
-      bind:value={password}
-      placeholder="Password"
-      disabled={saving}
-    />
-  </label>
+  <PasswordInput
+    bind:value={password}
+    labelText="Password"
+    placeholder="Password"
+    disabled={saving}
+    required
+  />
 
   <div class="test-section">
-    <button
-      type="button"
-      class="test-btn"
-      onclick={handleTestConnection}
+    <Button
+      kind="tertiary"
+      size="small"
+      on:click={handleTestConnection}
       disabled={!serverUrl.trim() || !username.trim() || !password.trim() || accountStore.testing || saving}
     >
-      {accountStore.testing ? 'Testing...' : 'Test Connection'}
-    </button>
+      {#if accountStore.testing}
+        <InlineLoading description="Testing..." />
+      {:else}
+        Test Connection
+      {/if}
+    </Button>
 
     {#if accountStore.testResult}
       {#if accountStore.testResult.success}
-        <div class="test-result success">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-          </svg>
-          <span>Connection successful!</span>
-        </div>
-        {#if discoveredCalendars.length > 0}
+        <InlineNotification
+          kind="success"
+          title="Success"
+          subtitle="Connection successful!"
+          hideCloseButton
+        />
+        {#if taskCalendars.length > 0}
           <div class="calendars">
             <span class="calendars-label">Discovered calendars with tasks:</span>
-            <ul>
-              {#each discoveredCalendars.filter(c => c.supports_vtodo) as cal}
-                <li>
+            <UnorderedList>
+              {#each taskCalendars as cal}
+                <ListItem>
                   {#if cal.color}
                     <span class="cal-color" style:background-color={cal.color}></span>
                   {/if}
                   {cal.display_name || cal.href}
-                </li>
+                </ListItem>
               {/each}
-              {#if discoveredCalendars.filter(c => c.supports_vtodo).length === 0}
-                <li class="no-calendars">No calendars with task support found</li>
-              {/if}
-            </ul>
+            </UnorderedList>
           </div>
+        {:else}
+          <InlineNotification
+            kind="warning"
+            title="No task calendars"
+            subtitle="No calendars with task support found"
+            hideCloseButton
+          />
         {/if}
       {:else}
-        <div class="test-result error">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
-          <span>{accountStore.testResult.error || 'Connection failed'}</span>
-        </div>
+        <InlineNotification
+          kind="error"
+          title="Failed"
+          subtitle={accountStore.testResult.error || 'Connection failed'}
+          hideCloseButton
+        />
       {/if}
     {/if}
   </div>
 
   {#if accountStore.error && !accountStore.testResult}
-    <p class="error">{accountStore.error}</p>
+    <InlineNotification
+      kind="error"
+      title="Error"
+      subtitle={accountStore.error}
+      hideCloseButton
+    />
   {/if}
 
-  <div class="form-actions">
-    <button type="button" onclick={onClose} disabled={saving}>Cancel</button>
-    <button
+  <ButtonSet class="form-actions">
+    <Button kind="secondary" on:click={onClose} disabled={saving}>
+      Cancel
+    </Button>
+    <Button
       type="submit"
-      class="primary"
       disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving || (!isEditing && !connectionValid)}
-      title={!isEditing && !connectionValid ? 'Test connection first' : ''}
     >
       {#if saving && isEditing}
         Saving...
@@ -237,51 +256,26 @@
       {:else}
         Add Account
       {/if}
-    </button>
-  </div>
+    </Button>
+  </ButtonSet>
+
   {#if !isEditing && !connectionValid && name.trim() && serverUrl.trim() && username.trim() && password.trim()}
     <p class="hint">Please test the connection before adding the account.</p>
   {/if}
-</form>
+</Form>
 
 <style>
-  .account-form {
+  :global(.account-form) {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1.5rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
+    padding: 1rem;
   }
 
   h3 {
     margin: 0 0 0.5rem;
     font-size: 1.125rem;
     font-weight: 600;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .form-field span {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .form-field input {
-    padding: 0.625rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.9375rem;
-    background: var(--bg-primary);
-  }
-
-  .form-field input:focus {
-    outline: none;
-    border-color: var(--accent-color);
   }
 
   .test-section {
@@ -291,135 +285,37 @@
     padding-top: 0.5rem;
   }
 
-  .test-btn {
-    align-self: flex-start;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--bg-primary);
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-
-  .test-btn:hover:not(:disabled) {
-    background: var(--bg-hover);
-  }
-
-  .test-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .test-result {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-  }
-
-  .test-result.success {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
-  }
-
-  .test-result.error {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
-  }
-
-  .test-result .icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
   .calendars {
     padding: 0.75rem;
-    background: var(--bg-primary);
-    border-radius: 6px;
+    background: var(--cds-layer, var(--bg-primary));
+    border-radius: 0;
     font-size: 0.875rem;
   }
 
   .calendars-label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-  }
-
-  .calendars ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .calendars li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    color: var(--cds-text-secondary, var(--text-secondary));
   }
 
   .cal-color {
     width: 12px;
     height: 12px;
     border-radius: 3px;
-    flex-shrink: 0;
+    display: inline-block;
+    margin-right: 0.5rem;
+    vertical-align: middle;
   }
 
-  .no-calendars {
-    color: var(--text-secondary);
-    font-style: italic;
-  }
-
-  .error {
-    color: var(--error-color);
-    font-size: 0.875rem;
-    margin: 0;
-  }
-
-  .form-actions {
-    display: flex;
+  :global(.form-actions) {
     justify-content: flex-end;
-    gap: 0.75rem;
     padding-top: 0.5rem;
-  }
-
-  .form-actions button {
-    padding: 0.625rem 1.25rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .form-actions button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .form-actions button.primary {
-    background: var(--accent-color);
-    color: white;
-  }
-
-  .form-actions button:not(.primary) {
-    background: transparent;
-    border: 1px solid var(--border-color);
-  }
-
-  .form-actions button:not(.primary):hover:not(:disabled) {
-    background: var(--bg-hover);
   }
 
   .hint {
     margin: 0;
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--cds-text-secondary, var(--text-secondary));
     text-align: right;
   }
 </style>

@@ -4,6 +4,7 @@
   import { listStore } from '$lib/stores/lists.svelte';
   import TaskItem from './TaskItem.svelte';
   import SyncStatus from './SyncStatus.svelte';
+  import { Accordion, AccordionItem, InlineLoading } from 'carbon-components-svelte';
 
   interface Props {
     onEditTask?: (task: Task) => void;
@@ -43,11 +44,13 @@
         <SyncStatus listId={syncListId} />
       {/if}
     </div>
-    <span class="task-count">{incompleteTasks.length} tasks</span>
+    <span class="task-count">{incompleteTasks.length} task{incompleteTasks.length !== 1 ? 's' : ''}</span>
   </header>
 
   {#if taskStore.loading}
-    <div class="loading">Loading tasks...</div>
+    <div class="loading">
+      <InlineLoading description="Loading tasks..." />
+    </div>
   {:else if taskStore.error}
     <div class="error">{taskStore.error}</div>
   {:else}
@@ -65,14 +68,15 @@
         </div>
 
         {#if !hideCompletedSection && completedTasks.length > 0}
-          <details class="completed-section">
-            <summary>Completed ({completedTasks.length})</summary>
-            <div class="task-section">
-              {#each completedTasks as task (task.id)}
-                <TaskItem {task} onEdit={onEditTask} />
-              {/each}
-            </div>
-          </details>
+          <Accordion>
+            <AccordionItem title="Completed ({completedTasks.length})">
+              <div class="task-section">
+                {#each completedTasks as task (task.id)}
+                  <TaskItem {task} onEdit={onEditTask} />
+                {/each}
+              </div>
+            </AccordionItem>
+          </Accordion>
         {/if}
       {/if}
     </div>
@@ -90,8 +94,8 @@
   }
 
   .list-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    border-bottom: 1px solid var(--cds-border-subtle, var(--border-color));
   }
 
   .header-top {
@@ -103,42 +107,24 @@
 
   .list-header h1 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
   }
 
   .task-count {
     font-size: 0.875rem;
-    color: var(--text-secondary);
+    color: var(--cds-text-secondary, var(--text-secondary));
   }
 
   .tasks-container {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem 1.5rem;
+    padding: 0.5rem 1rem;
   }
 
   .task-section {
     display: flex;
     flex-direction: column;
-  }
-
-  .completed-section {
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
-  }
-
-  .completed-section summary {
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    padding: 0.5rem 0;
-    user-select: none;
-  }
-
-  .completed-section summary:hover {
-    color: var(--text-primary);
   }
 
   .loading,
@@ -149,11 +135,11 @@
   }
 
   .error {
-    color: var(--error-color);
+    color: var(--cds-danger, var(--error-color));
   }
 
   .empty-state {
-    color: var(--text-secondary);
+    color: var(--cds-text-secondary, var(--text-secondary));
   }
 
   .empty-state p {
@@ -164,15 +150,15 @@
     font-size: 0.875rem;
   }
 
-  /* Mobile adjustments */
-  @media (max-width: 768px) {
+  /* Hide header on mobile - shown in Carbon Header instead */
+  @media (max-width: 1056px) {
     .list-header {
-      display: none; /* Title shown in mobile header */
+      display: none;
     }
 
     .tasks-container {
-      padding: 0.75rem 1rem;
-      padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+      padding: 0.5rem;
+      padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0));
     }
   }
 </style>

@@ -1,67 +1,10 @@
 /* Global styles for Potasko */
+/* Note: Most styling is handled by Carbon Design System */
 
-:root {
-  /* Responsive breakpoints */
-  --mobile-breakpoint: 768px;
-  --touch-target-min: 44px;
+/* ============================================
+   Base Reset & Setup
+   ============================================ */
 
-  /* Colors - Light mode */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-hover: #f3f4f6;
-  --bg-selected: #e5e7eb;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --accent-color: #3b82f6;
-  --error-color: #dc2626;
-
-  /* Priority colors - Light mode */
-  --priority-high-bg: #fee2e2;
-  --priority-high-text: #dc2626;
-  --priority-medium-bg: #fef3c7;
-  --priority-medium-text: #d97706;
-  --priority-low-bg: #dbeafe;
-  --priority-low-text: #2563eb;
-
-  /* Typography */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
-
-  /* Rendering */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-hover: #374151;
-    --bg-selected: #4b5563;
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --border-color: #374151;
-    --accent-color: #60a5fa;
-    --error-color: #f87171;
-
-    /* Priority colors - Dark mode */
-    --priority-high-bg: #7f1d1d;
-    --priority-high-text: #fca5a5;
-    --priority-medium-bg: #78350f;
-    --priority-medium-text: #fcd34d;
-    --priority-low-bg: #1e3a5f;
-    --priority-low-text: #93c5fd;
-  }
-}
-
-/* Reset */
 *,
 *::before,
 *::after {
@@ -78,79 +21,56 @@ body {
   overflow: hidden;
 }
 
-/* Mobile drawer backdrop */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+/* ============================================
+   Legacy Color Variables (fallbacks)
+   Used by components that haven't fully migrated
+   ============================================ */
+
+:root {
+  /* Fallback colors - Carbon tokens preferred */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f4;
+  --bg-hover: #e8e8e8;
+  --text-primary: #161616;
+  --text-secondary: #525252;
+  --border-color: #e0e0e0;
+  --accent-color: #0f62fe;
+  --error-color: #da1e28;
+
+  /* Priority colors for task tags */
+  --priority-high-bg: #fff1f1;
+  --priority-high-text: #da1e28;
+  --priority-medium-bg: #fff8e1;
+  --priority-medium-text: #f1c21b;
+  --priority-low-bg: #e5f6ff;
+  --priority-low-text: #0043ce;
 }
 
-.backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
+/* Dark mode fallbacks */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #262626;
+    --bg-secondary: #161616;
+    --bg-hover: #393939;
+    --text-primary: #f4f4f4;
+    --text-secondary: #c6c6c6;
+    --border-color: #525252;
+    --accent-color: #78a9ff;
+    --error-color: #ff8389;
 
-/* Mobile header */
-.mobile-header {
-  display: none;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.mobile-header h1 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.hamburger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--touch-target-min);
-  height: var(--touch-target-min);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-  border-radius: 8px;
-}
-
-.hamburger-btn:hover {
-  background: var(--bg-hover);
-}
-
-.hamburger-btn svg {
-  width: 24px;
-  height: 24px;
-}
-
-@media (max-width: 768px) {
-  .mobile-header {
-    display: flex;
-  }
-
-  /* Safe area padding for mobile devices */
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    --priority-high-bg: #520408;
+    --priority-high-text: #ffb3b8;
+    --priority-medium-bg: #4a3000;
+    --priority-medium-text: #f1c21b;
+    --priority-low-bg: #002d5c;
+    --priority-low-text: #a6c8ff;
   }
 }
 
-/* Focus styles */
-:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
+/* ============================================
+   Scrollbar Styling
+   ============================================ */
 
-/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -161,16 +81,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--cds-border-subtle, var(--border-color));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: var(--cds-text-secondary, var(--text-secondary));
 }
 
-/* Selection */
+/* ============================================
+   Selection
+   ============================================ */
+
 ::selection {
-  background: var(--accent-color);
-  color: white;
+  background: var(--cds-interactive, var(--accent-color));
+  color: var(--cds-text-on-color, white);
 }
