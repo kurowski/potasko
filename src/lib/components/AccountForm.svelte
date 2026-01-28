@@ -126,53 +126,57 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<form class="account-form" onsubmit={handleSubmit}>
-  <h3>{isEditing ? 'Edit Account' : 'Add CalDAV Account'}</h3>
+<form class="card flex flex-col gap-4 p-6 bg-surface-100-900 rounded-lg" onsubmit={handleSubmit}>
+  <h3 class="m-0 mb-2 text-lg font-semibold">{isEditing ? 'Edit Account' : 'Add CalDAV Account'}</h3>
 
-  <label class="form-field">
-    <span>Account Name</span>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-sm text-surface-500">Account Name</span>
     <input
       type="text"
+      class="input"
       bind:value={name}
       placeholder="e.g., Work, Personal"
       disabled={saving}
     />
   </label>
 
-  <label class="form-field">
-    <span>Server URL</span>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-sm text-surface-500">Server URL</span>
     <input
       type="url"
+      class="input"
       bind:value={serverUrl}
       placeholder="https://caldav.example.com"
       disabled={saving}
     />
   </label>
 
-  <label class="form-field">
-    <span>Username</span>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-sm text-surface-500">Username</span>
     <input
       type="text"
+      class="input"
       bind:value={username}
       placeholder="Username"
       disabled={saving}
     />
   </label>
 
-  <label class="form-field">
-    <span>Password</span>
+  <label class="flex flex-col gap-1.5">
+    <span class="text-sm text-surface-500">Password</span>
     <input
       type="password"
+      class="input"
       bind:value={password}
       placeholder="Password"
       disabled={saving}
     />
   </label>
 
-  <div class="test-section">
+  <div class="flex flex-col gap-3 pt-2">
     <button
       type="button"
-      class="test-btn"
+      class="btn preset-outlined self-start"
       onclick={handleTestConnection}
       disabled={!serverUrl.trim() || !username.trim() || !password.trim() || accountStore.testing || saving}
     >
@@ -181,33 +185,33 @@
 
     {#if accountStore.testResult}
       {#if accountStore.testResult.success}
-        <div class="test-result success">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+        <div class="flex items-center gap-2 p-3 bg-success-500/20 rounded-md text-sm text-success-700 dark:text-success-300">
+          <svg class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
           </svg>
           <span>Connection successful!</span>
         </div>
         {#if discoveredCalendars.length > 0}
-          <div class="calendars">
-            <span class="calendars-label">Discovered calendars with tasks:</span>
-            <ul>
+          <div class="p-3 bg-surface-50-950 rounded-md text-sm">
+            <span class="block mb-2 text-surface-500">Discovered calendars with tasks:</span>
+            <ul class="m-0 p-0 list-none flex flex-col gap-1.5">
               {#each discoveredCalendars.filter(c => c.supports_vtodo) as cal}
-                <li>
+                <li class="flex items-center gap-2">
                   {#if cal.color}
-                    <span class="cal-color" style:background-color={cal.color}></span>
+                    <span class="w-3 h-3 rounded shrink-0" style:background-color={cal.color}></span>
                   {/if}
                   {cal.display_name || cal.href}
                 </li>
               {/each}
               {#if discoveredCalendars.filter(c => c.supports_vtodo).length === 0}
-                <li class="no-calendars">No calendars with task support found</li>
+                <li class="text-surface-500 italic">No calendars with task support found</li>
               {/if}
             </ul>
           </div>
         {/if}
       {:else}
-        <div class="test-result error">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+        <div class="flex items-center gap-2 p-3 bg-error-500/20 rounded-md text-sm text-error-500">
+          <svg class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
           <span>{accountStore.testResult.error || 'Connection failed'}</span>
@@ -217,14 +221,14 @@
   </div>
 
   {#if accountStore.error && !accountStore.testResult}
-    <p class="error">{accountStore.error}</p>
+    <p class="m-0 text-sm text-error-500">{accountStore.error}</p>
   {/if}
 
-  <div class="form-actions">
-    <button type="button" onclick={onClose} disabled={saving}>Cancel</button>
+  <div class="flex justify-end gap-3 pt-2">
+    <button type="button" class="btn preset-outlined" onclick={onClose} disabled={saving}>Cancel</button>
     <button
       type="submit"
-      class="primary"
+      class="btn preset-filled-primary-500"
       disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving || (!isEditing && !connectionValid)}
       title={!isEditing && !connectionValid ? 'Test connection first' : ''}
     >
@@ -240,186 +244,6 @@
     </button>
   </div>
   {#if !isEditing && !connectionValid && name.trim() && serverUrl.trim() && username.trim() && password.trim()}
-    <p class="hint">Please test the connection before adding the account.</p>
+    <p class="m-0 text-[0.8125rem] text-surface-500 text-right">Please test the connection before adding the account.</p>
   {/if}
 </form>
-
-<style>
-  .account-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-  }
-
-  h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .form-field span {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .form-field input {
-    padding: 0.625rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.9375rem;
-    background: var(--bg-primary);
-  }
-
-  .form-field input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-  }
-
-  .test-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding-top: 0.5rem;
-  }
-
-  .test-btn {
-    align-self: flex-start;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--bg-primary);
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-
-  .test-btn:hover:not(:disabled) {
-    background: var(--bg-hover);
-  }
-
-  .test-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .test-result {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-  }
-
-  .test-result.success {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
-  }
-
-  .test-result.error {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
-  }
-
-  .test-result .icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  .calendars {
-    padding: 0.75rem;
-    background: var(--bg-primary);
-    border-radius: 6px;
-    font-size: 0.875rem;
-  }
-
-  .calendars-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-  }
-
-  .calendars ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .calendars li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .cal-color {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-
-  .no-calendars {
-    color: var(--text-secondary);
-    font-style: italic;
-  }
-
-  .error {
-    color: var(--error-color);
-    font-size: 0.875rem;
-    margin: 0;
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding-top: 0.5rem;
-  }
-
-  .form-actions button {
-    padding: 0.625rem 1.25rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .form-actions button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .form-actions button.primary {
-    background: var(--accent-color);
-    color: white;
-  }
-
-  .form-actions button:not(.primary) {
-    background: transparent;
-    border: 1px solid var(--border-color);
-  }
-
-  .form-actions button:not(.primary):hover:not(:disabled) {
-    background: var(--bg-hover);
-  }
-
-  .hint {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    text-align: right;
-  }
-</style>

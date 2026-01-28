@@ -18,17 +18,21 @@
     "@tauri-apps/plugin-opener": "^2"
   },
   "devDependencies": {
+    "@skeletonlabs/skeleton": "4.10.0",
+    "@skeletonlabs/skeleton-svelte": "4.9.0",
     "@sveltejs/adapter-static": "^3.0.6",
     "@sveltejs/kit": "^2.9.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tauri-apps/cli": "^2",
     "@wdio/cli": "^9.19.0",
     "@wdio/local-runner": "^9.19.0",
     "@wdio/mocha-framework": "^9.19.0",
     "@wdio/spec-reporter": "^9.19.0",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
+    "tailwindcss": "4.1.18",
     "typescript": "~5.6.2",
-    "vite": "^6.0.3",
-    "@tauri-apps/cli": "^2"
+    "vite": "^6.0.3"
   }
 }

@@ -7,9 +7,10 @@
 
   interface Props {
     onEditTask?: (task: Task) => void;
+    onAddTask?: () => void;
   }
 
-  let { onEditTask }: Props = $props();
+  let { onEditTask, onAddTask }: Props = $props();
 
   // Separate completed and incomplete tasks
   const incompleteTasks = $derived(taskStore.tasks.filter(t => !t.completed));
@@ -33,41 +34,63 @@
   const syncListId = $derived(
     listStore.selectedView?.type === 'list' ? listStore.selectedList?.id : null
   );
+
+  // Can add tasks only in list view (not special views like Today/Overdue)
+  const canAddTasks = $derived(listStore.selectedView?.type === 'list');
 </script>
 
-<div class="task-list-view">
-  <header class="list-header">
-    <div class="header-top">
-      <h1>{viewTitle()}</h1>
-      {#if syncListId}
-        <SyncStatus listId={syncListId} />
-      {/if}
+<div class="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+  <!-- Header (hidden on mobile, shown in mobile header instead) -->
+  <header class="hidden md:block px-6 pt-6 pb-4 border-b border-surface-300-700">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="m-0 text-2xl font-semibold">{viewTitle()}</h1>
+        <span class="text-sm text-surface-500">{incompleteTasks.length} tasks</span>
+      </div>
+      <div class="flex items-center gap-3">
+        {#if syncListId}
+          <SyncStatus listId={syncListId} />
+        {/if}
+        {#if canAddTasks && onAddTask}
+          <button
+            class="btn preset-filled-primary-500"
+            onclick={onAddTask}
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Task
+          </button>
+        {/if}
+      </div>
     </div>
-    <span class="task-count">{incompleteTasks.length} tasks</span>
   </header>
 
   {#if taskStore.loading}
-    <div class="loading">Loading tasks...</div>
+    <div class="p-8 text-center text-surface-500">Loading tasks...</div>
   {:else if taskStore.error}
-    <div class="error">{taskStore.error}</div>
+    <div class="p-8 text-center text-error-500">{taskStore.error}</div>
   {:else}
-    <div class="tasks-container">
+    <div class="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4 pb-[calc(0.75rem+var(--safe-area-bottom))]">
       {#if incompleteTasks.length === 0 && completedTasks.length === 0}
-        <div class="empty-state">
-          <p>No tasks yet</p>
-          <p class="hint">Add a task to get started</p>
+        <div class="p-8 text-center text-surface-500">
+          <p class="my-1">No tasks yet</p>
+          <p class="my-1 text-sm">Add a task to get started</p>
         </div>
       {:else}
-        <div class="task-section">
+        <div class="flex flex-col">
           {#each incompleteTasks as task (task.id)}
             <TaskItem {task} onEdit={onEditTask} />
           {/each}
         </div>
 
         {#if !hideCompletedSection && completedTasks.length > 0}
-          <details class="completed-section">
-            <summary>Completed ({completedTasks.length})</summary>
-            <div class="task-section">
+          <details class="mt-6 pt-4 border-t border-surface-300-700">
+            <summary class="cursor-pointer text-sm text-surface-500 py-2 select-none hover:text-surface-700 dark:hover:text-surface-300">
+              Completed ({completedTasks.length})
+            </summary>
+            <div class="flex flex-col">
               {#each completedTasks as task (task.id)}
                 <TaskItem {task} onEdit={onEditTask} />
               {/each}
@@ -78,101 +101,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .task-list-view {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .list-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .list-header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-
-  .task-count {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .tasks-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem 1.5rem;
-  }
-
-  .task-section {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .completed-section {
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
-  }
-
-  .completed-section summary {
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    padding: 0.5rem 0;
-    user-select: none;
-  }
-
-  .completed-section summary:hover {
-    color: var(--text-primary);
-  }
-
-  .loading,
-  .error,
-  .empty-state {
-    padding: 2rem;
-    text-align: center;
-  }
-
-  .error {
-    color: var(--error-color);
-  }
-
-  .empty-state {
-    color: var(--text-secondary);
-  }
-
-  .empty-state p {
-    margin: 0.25rem 0;
-  }
-
-  .empty-state .hint {
-    font-size: 0.875rem;
-  }
-
-  /* Mobile adjustments */
-  @media (max-width: 768px) {
-    .list-header {
-      display: none; /* Title shown in mobile header */
-    }
-
-    .tasks-container {
-      padding: 0.75rem 1rem;
-      padding-bottom: env(safe-area-inset-bottom, 0.75rem);
-    }
-  }
-</style>

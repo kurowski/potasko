@@ -4,14 +4,16 @@
   import { listStore } from '$lib/stores/lists.svelte';
   import { taskStore } from '$lib/stores/tasks.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
+  import { themeStore } from '$lib/stores/theme.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
+  import ThemeSettings from '$lib/components/ThemeSettings.svelte';
   import AccountList from '$lib/components/AccountList.svelte';
 
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
-  let showMobileForm = $state(false);
+  let showTaskForm = $state(false);
 
   // Mobile responsiveness state
   const MOBILE_BREAKPOINT = 768;
@@ -49,6 +51,7 @@
 
   // Load lists on mount
   onMount(() => {
+    themeStore.init();
     listStore.load();
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -85,38 +88,40 @@
 
   function handleEditTask(task: Task) {
     editingTask = task;
-    if (isMobile) {
-      showMobileForm = true;
-    }
+    showTaskForm = true;
   }
 
-  function handleCloseEdit() {
+  function handleCloseForm() {
     editingTask = null;
-    showMobileForm = false;
+    showTaskForm = false;
   }
 
   function handleToggleSettings() {
     showSettings = !showSettings;
   }
 
-  function handleFabClick() {
+  function handleAddTask() {
     editingTask = null;
-    showMobileForm = true;
+    showTaskForm = true;
   }
 </script>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="app-layout" class:mobile={isMobile}>
+<div class="h-full flex flex-col md:flex-row overflow-hidden">
+  <!-- Mobile header -->
   {#if isMobile}
-    <header class="mobile-header">
-      <button class="hamburger-btn" onclick={toggleSidebar} aria-label="Toggle menu">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <header class="flex items-center gap-3 px-4 py-3 pt-[calc(0.75rem+var(--safe-area-top))] bg-surface-100-900 border-b border-surface-300-700">
+      <button
+        class="btn-icon preset-tonal"
+        onclick={toggleSidebar}
+        aria-label="Toggle menu"
+      >
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
         </svg>
       </button>
-      <h1>{currentViewTitle()}</h1>
+      <h1 class="m-0 text-lg font-semibold">{currentViewTitle()}</h1>
     </header>
   {/if}
 
@@ -128,213 +133,94 @@
     onClose={closeSidebar}
   />
 
+  <!-- Mobile backdrop -->
   {#if isMobile && sidebarOpen}
-    <div class="backdrop visible" onclick={closeSidebar}></div>
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+      class="fixed inset-0 bg-black/50 z-[99] transition-opacity"
+      onclick={closeSidebar}
+    ></div>
   {/if}
 
-  <main class="main-content">
+  <main class="flex-1 flex flex-col min-w-0 min-h-0">
     {#if showSettings}
-      <div class="settings-panel">
-        <AccountList />
+      <div class="flex-1 p-6 md:p-8 overflow-y-auto bg-surface-50-950">
+        <div class="max-w-2xl mx-auto flex flex-col gap-8">
+          <ThemeSettings />
+          <hr class="border-surface-300-700" />
+          <AccountList />
+        </div>
       </div>
     {:else if listStore.selectedView}
-      <TaskListView onEditTask={handleEditTask} />
-      {#if canAddTasks}
-        {#if !isMobile}
-          <!-- Desktop: inline form -->
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
-        {/if}
-      {/if}
+      <TaskListView onEditTask={handleEditTask} onAddTask={handleAddTask} />
     {:else if listStore.loading}
-      <div class="loading-state">Loading...</div>
+      <div class="flex-1 flex flex-col items-center justify-center text-surface-500">Loading...</div>
     {:else}
-      <div class="empty-state">
-        <p>No lists yet</p>
-        <p>Create a list to get started</p>
+      <div class="flex-1 flex flex-col items-center justify-center text-surface-500">
+        <p class="my-1">No lists yet</p>
+        <p class="my-1">Create a list to get started</p>
       </div>
     {/if}
   </main>
 
-  <!-- Mobile: FAB and modal form -->
-  {#if isMobile && canAddTasks && !showSettings}
-    {#if showMobileForm}
+  <!-- Task form modal (both mobile and desktop) -->
+  {#if showTaskForm && canAddTasks && !showSettings}
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+    <div
+      class="fixed inset-0 bg-black/50 z-[200] flex animate-fadeIn
+             {isMobile ? 'items-end' : 'items-center justify-center p-4'}"
+      onclick={handleCloseForm}
+    >
       <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <div class="form-modal-backdrop" onclick={handleCloseEdit}>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="form-modal" onclick={(e) => e.stopPropagation()}>
-          <div class="form-modal-handle"></div>
-          <div class="form-modal-header">
-            <span>{editingTask ? 'Edit Task' : 'New Task'}</span>
-            <button class="form-modal-close" onclick={handleCloseEdit} aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
+      <div
+        class="bg-surface-50-950 overflow-y-auto
+               {isMobile
+                 ? 'w-full rounded-t-2xl animate-slideUp max-h-[90vh]'
+                 : 'w-full max-w-lg rounded-xl shadow-xl animate-scaleIn'}"
+        onclick={(e) => e.stopPropagation()}
+      >
+        {#if isMobile}
+          <div class="w-9 h-1 bg-surface-300-700 rounded-full mx-auto mt-2"></div>
+        {/if}
+        <div class="flex items-center justify-between px-4 py-3 {isMobile ? '' : 'border-b border-surface-300-700'}">
+          <span class="font-semibold text-lg">{editingTask ? 'Edit Task' : 'New Task'}</span>
+          <button
+            class="btn-icon preset-tonal"
+            onclick={handleCloseForm}
+            aria-label="Close"
+          >
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
+        {#key editingTask?.id}
+          <TaskForm task={editingTask} onClose={handleCloseForm} />
+        {/key}
       </div>
-    {:else}
-      <button class="fab" onclick={handleFabClick} aria-label="Add task">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
-    {/if}
+    </div>
+  {/if}
+
+  <!-- Mobile FAB -->
+  {#if isMobile && canAddTasks && !showSettings && !showTaskForm}
+    <button
+      class="fixed bottom-[calc(1.5rem+var(--safe-area-bottom))] right-6 w-14 h-14 rounded-full
+             bg-primary-500 text-white border-none cursor-pointer
+             flex items-center justify-center shadow-lg z-[100]
+             transition-transform hover:scale-105 active:scale-95"
+      onclick={handleAddTask}
+      aria-label="Add task"
+    >
+      <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
   {/if}
 </div>
 
 <style>
-  .app-layout {
-    display: flex;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .app-layout.mobile {
-    flex-direction: column;
-  }
-
-  .main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    min-height: 0;
-  }
-
-  .loading-state,
-  .empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-  }
-
-  .empty-state p {
-    margin: 0.25rem 0;
-  }
-
-  .settings-panel {
-    flex: 1;
-    padding: 1.5rem;
-    overflow-y: auto;
-    background: var(--bg-primary);
-  }
-
-  @media (max-width: 768px) {
-    .settings-panel {
-      padding: 1rem;
-    }
-  }
-
-  /* Floating Action Button */
-  .fab {
-    position: fixed;
-    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
-    right: 1.5rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    z-index: 100;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .fab:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .fab:active {
-    transform: scale(0.95);
-  }
-
-  .fab svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  /* Mobile form modal */
-  .form-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 200;
-    display: flex;
-    align-items: flex-end;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .form-modal {
-    width: 100%;
-    background: var(--bg-primary);
-    border-radius: 16px 16px 0 0;
-    animation: slideUp 0.3s ease;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .form-modal-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border-color);
-    border-radius: 2px;
-    margin: 8px auto;
-  }
-
-  .form-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem 0.5rem;
-    font-weight: 600;
-  }
-
-  .form-modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    border-radius: 50%;
-  }
-
-  .form-modal-close:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .form-modal-close svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Remove TaskForm border when in modal */
-  .form-modal :global(.task-form) {
-    border-top: none;
-    padding-top: 0;
-  }
-
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -343,5 +229,22 @@
   @keyframes slideUp {
     from { transform: translateY(100%); }
     to { transform: translateY(0); }
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.2s ease;
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.2s ease;
   }
 </style>

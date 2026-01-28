@@ -127,12 +127,20 @@
   }
 </script>
 
-<aside class="sidebar" class:mobile={isMobile} class:open={isOpen}>
+<aside
+  class="w-60 bg-surface-100-900 border-r border-surface-300-700 flex flex-col h-full
+         {isMobile ? 'fixed top-0 left-0 w-70 z-100 shadow-lg transition-transform duration-300' : ''}
+         {isMobile && !isOpen ? '-translate-x-full' : ''}"
+>
   {#if isMobile}
-    <div class="sidebar-header mobile-close-header">
-      <h2>Menu</h2>
-      <button class="close-btn" onclick={onClose} aria-label="Close menu">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="flex justify-between items-center p-4 pt-[calc(1rem+var(--safe-area-top))] border-b border-surface-300-700">
+      <h2 class="m-0 text-base font-semibold">Menu</h2>
+      <button
+        class="btn-icon preset-tonal"
+        onclick={onClose}
+        aria-label="Close menu"
+      >
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
@@ -140,129 +148,139 @@
     </div>
   {/if}
 
-  <div class="sidebar-header">
-    <h2>Views</h2>
+  <div class="flex justify-between items-center p-4 border-b border-surface-300-700">
+    <h2 class="m-0 text-base font-semibold">Views</h2>
   </div>
 
-  <nav class="special-nav">
+  <nav class="p-2 border-b border-surface-300-700">
     <button
-      class="special-item"
-      class:selected={listStore.selectedSpecialView === 'today'}
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-left transition-colors
+             {listStore.selectedSpecialView === 'today' ? 'bg-surface-200-800' : 'hover:bg-surface-200-800'}"
       onclick={() => handleNavigation(() => listStore.selectSpecial('today'))}
     >
-      <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
+      <svg class="w-[18px] h-[18px] shrink-0 text-surface-500" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
       </svg>
-      <span class="list-name">Today</span>
+      <span>Today</span>
     </button>
     <button
-      class="special-item"
-      class:selected={listStore.selectedSpecialView === 'overdue'}
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-left transition-colors
+             {listStore.selectedSpecialView === 'overdue' ? 'bg-surface-200-800' : 'hover:bg-surface-200-800'}"
       onclick={() => handleNavigation(() => listStore.selectSpecial('overdue'))}
     >
-      <svg class="special-icon" viewBox="0 0 24 24" fill="currentColor">
+      <svg class="w-[18px] h-[18px] shrink-0 text-surface-500" viewBox="0 0 24 24" fill="currentColor">
         <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
       </svg>
-      <span class="list-name">Overdue</span>
+      <span>Overdue</span>
     </button>
   </nav>
 
-  <div class="sidebar-header">
-    <h2>Lists</h2>
-    <button class="icon-btn" onclick={() => isAdding = true} title="Add list">+</button>
+  <div class="flex justify-between items-center p-4 border-b border-surface-300-700">
+    <h2 class="m-0 text-base font-semibold">Lists</h2>
+    <button
+      class="btn-icon preset-tonal size-7"
+      onclick={() => isAdding = true}
+      title="Add list"
+    >
+      +
+    </button>
   </div>
 
   {#if isAdding}
-    <form class="list-form" onsubmit={handleAddList} onkeydown={handleKeydown}>
+    <form class="p-2 px-4 flex flex-col gap-2 border-b border-surface-300-700" onsubmit={handleAddList} onkeydown={handleKeydown}>
       <input
         type="text"
+        class="input text-sm"
         bind:value={newListName}
         placeholder="List name..."
         autofocus
       />
       {#if accountStore.accounts.length > 0}
-        <select bind:value={newListAccountId} class="account-select">
+        <select bind:value={newListAccountId} class="input text-sm min-h-11">
           <option value={null}>Local only</option>
           {#each accountStore.accounts as account (account.id)}
             <option value={account.id}>{account.name}</option>
           {/each}
         </select>
       {/if}
-      <div class="color-picker">
+      <div class="flex gap-1.5 flex-wrap">
         {#each COLORS as color}
           <button
             type="button"
-            class="color-option"
-            class:selected={newListColor === color}
+            class="w-5 h-5 rounded border-2 p-0 cursor-pointer transition-transform hover:scale-110
+                   {newListColor === color ? 'border-surface-900 dark:border-surface-50' : 'border-transparent'}"
             style:background-color={color}
             onclick={() => newListColor = color}
             title={color}
           ></button>
         {/each}
       </div>
-      <div class="form-buttons">
-        <button type="submit" class="primary" disabled={!newListName.trim()}>Add</button>
-        <button type="button" onclick={() => { isAdding = false; newListName = ''; newListColor = COLORS[0]; newListAccountId = null; }}>Cancel</button>
+      <div class="flex gap-2">
+        <button type="submit" class="btn btn-sm preset-filled-primary-500" disabled={!newListName.trim()}>Add</button>
+        <button type="button" class="btn btn-sm preset-outlined" onclick={() => { isAdding = false; newListName = ''; newListColor = COLORS[0]; newListAccountId = null; }}>Cancel</button>
       </div>
     </form>
   {/if}
 
-  <nav class="list-nav">
+  <nav class="flex-1 overflow-y-auto p-2">
     <!-- Local lists section -->
     {#if groupedLists().localLists.length > 0}
-      <div class="list-section-header">Local</div>
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wide text-surface-500 px-3 py-1.5 mt-1">Local</div>
       {#each groupedLists().localLists as list (list.id)}
         {#if editingList?.id === list.id}
-          <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
+          <form class="p-2 bg-surface-200-800 rounded-md mb-1 flex flex-col gap-2" onsubmit={handleEditList} onkeydown={handleKeydown}>
             <input
               type="text"
+              class="input text-sm"
               bind:value={editName}
               autofocus
             />
-            <div class="color-picker">
+            <div class="flex gap-1.5 flex-wrap">
               {#each COLORS as color}
                 <button
                   type="button"
-                  class="color-option"
-                  class:selected={editColor === color}
+                  class="w-5 h-5 rounded border-2 p-0 cursor-pointer transition-transform hover:scale-110
+                         {editColor === color ? 'border-surface-900 dark:border-surface-50' : 'border-transparent'}"
                   style:background-color={color}
                   onclick={() => editColor = color}
                   title={color}
                 ></button>
               {/each}
             </div>
-            <div class="form-buttons">
-              <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
-              <button type="button" onclick={() => editingList = null}>Cancel</button>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-sm preset-filled-primary-500" disabled={!editName.trim()}>Save</button>
+              <button type="button" class="btn btn-sm preset-outlined" onclick={() => editingList = null}>Cancel</button>
             </div>
           </form>
         {:else}
           <div
-            class="list-item"
-            class:selected={list.id === listStore.selectedListId}
+            class="flex items-center gap-2 p-1.5 rounded-md text-sm group
+                   {list.id === listStore.selectedListId ? 'bg-surface-200-800' : 'hover:bg-surface-200-800'}"
           >
             <button
               type="button"
-              class="list-color-btn"
+              class="w-3.5 h-3.5 rounded shrink-0 border-none cursor-pointer p-0 hover:scale-115 transition-transform"
               style:background-color={list.color ?? '#6b7280'}
               onclick={() => startEdit(list)}
               title="Edit list"
             ></button>
             <button
               type="button"
-              class="list-name-btn"
+              class="flex-1 text-left bg-transparent border-none cursor-pointer text-sm px-1.5 py-1 rounded overflow-hidden text-ellipsis whitespace-nowrap hover:bg-surface-200-800"
               onclick={() => handleNavigation(() => listStore.select(list.id))}
             >
               {list.name}
             </button>
             <button
               type="button"
-              class="delete-btn"
-              class:mobile={isMobile}
+              class="shrink-0 w-7 h-7 p-0 border-none bg-transparent cursor-pointer rounded flex items-center justify-center
+                     text-surface-500 transition-opacity
+                     {isMobile ? 'opacity-100 w-11 h-11' : 'opacity-0 group-hover:opacity-100'}
+                     hover:bg-error-500 hover:text-white"
               onclick={(e) => handleDeleteClick(list, e)}
               title="Delete list"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor">
+              <svg class="w-3.5 h-3.5 {isMobile ? 'w-[18px] h-[18px]' : ''}" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
               </svg>
             </button>
@@ -273,59 +291,62 @@
 
     <!-- Account lists sections -->
     {#each [...groupedLists().accountLists.entries()] as [accountId, lists] (accountId)}
-      <div class="list-section-header">{getAccountName(accountId)}</div>
+      <div class="text-[0.6875rem] font-semibold uppercase tracking-wide text-surface-500 px-3 py-1.5 mt-3">{getAccountName(accountId)}</div>
       {#each lists as list (list.id)}
         {#if editingList?.id === list.id}
-          <form class="list-form inline" onsubmit={handleEditList} onkeydown={handleKeydown}>
+          <form class="p-2 bg-surface-200-800 rounded-md mb-1 flex flex-col gap-2" onsubmit={handleEditList} onkeydown={handleKeydown}>
             <input
               type="text"
+              class="input text-sm"
               bind:value={editName}
               autofocus
             />
-            <div class="color-picker">
+            <div class="flex gap-1.5 flex-wrap">
               {#each COLORS as color}
                 <button
                   type="button"
-                  class="color-option"
-                  class:selected={editColor === color}
+                  class="w-5 h-5 rounded border-2 p-0 cursor-pointer transition-transform hover:scale-110
+                         {editColor === color ? 'border-surface-900 dark:border-surface-50' : 'border-transparent'}"
                   style:background-color={color}
                   onclick={() => editColor = color}
                   title={color}
                 ></button>
               {/each}
             </div>
-            <div class="form-buttons">
-              <button type="submit" class="primary" disabled={!editName.trim()}>Save</button>
-              <button type="button" onclick={() => editingList = null}>Cancel</button>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-sm preset-filled-primary-500" disabled={!editName.trim()}>Save</button>
+              <button type="button" class="btn btn-sm preset-outlined" onclick={() => editingList = null}>Cancel</button>
             </div>
           </form>
         {:else}
           <div
-            class="list-item"
-            class:selected={list.id === listStore.selectedListId}
+            class="flex items-center gap-2 p-1.5 rounded-md text-sm group
+                   {list.id === listStore.selectedListId ? 'bg-surface-200-800' : 'hover:bg-surface-200-800'}"
           >
             <button
               type="button"
-              class="list-color-btn"
+              class="w-3.5 h-3.5 rounded shrink-0 border-none cursor-pointer p-0 hover:scale-115 transition-transform"
               style:background-color={list.color ?? '#6b7280'}
               onclick={() => startEdit(list)}
               title="Edit list"
             ></button>
             <button
               type="button"
-              class="list-name-btn"
+              class="flex-1 text-left bg-transparent border-none cursor-pointer text-sm px-1.5 py-1 rounded overflow-hidden text-ellipsis whitespace-nowrap hover:bg-surface-200-800"
               onclick={() => handleNavigation(() => listStore.select(list.id))}
             >
               {list.name}
             </button>
             <button
               type="button"
-              class="delete-btn"
-              class:mobile={isMobile}
+              class="shrink-0 w-7 h-7 p-0 border-none bg-transparent cursor-pointer rounded flex items-center justify-center
+                     text-surface-500 transition-opacity
+                     {isMobile ? 'opacity-100 w-11 h-11' : 'opacity-0 group-hover:opacity-100'}
+                     hover:bg-error-500 hover:text-white"
               onclick={(e) => handleDeleteClick(list, e)}
               title="Delete list"
             >
-              <svg viewBox="0 0 24 24" fill="currentColor">
+              <svg class="w-3.5 h-3.5 {isMobile ? 'w-[18px] h-[18px]' : ''}" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
               </svg>
             </button>
@@ -336,24 +357,24 @@
   </nav>
 
   {#if listStore.error}
-    <p class="error">{listStore.error}</p>
+    <p class="px-4 py-2 text-xs text-error-500">{listStore.error}</p>
   {/if}
 
-  <div class="sidebar-footer">
+  <div class="mt-auto p-2 border-t border-surface-300-700">
     {#if syncStore.syncing}
-      <div class="sync-indicator">
-        <svg class="spinning" viewBox="0 0 24 24" fill="currentColor">
+      <div class="flex items-center gap-2 px-3 py-2 text-[0.8125rem] text-primary-500">
+        <svg class="w-4 h-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
         </svg>
         <span>Syncing...</span>
       </div>
     {/if}
     <button
-      class="settings-btn"
-      class:active={showSettings}
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-left text-surface-500 transition-colors
+             {showSettings ? 'bg-surface-200-800 text-surface-900 dark:text-surface-50' : 'hover:bg-surface-200-800 hover:text-surface-900 dark:hover:text-surface-50'}"
       onclick={() => handleNavigation(() => onToggleSettings?.())}
     >
-      <svg viewBox="0 0 24 24" fill="currentColor">
+      <svg class="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
       </svg>
       <span>Settings</span>
@@ -364,398 +385,3 @@
 {#if listToDelete}
   <DeleteListModal list={listToDelete} onClose={() => listToDelete = null} />
 {/if}
-
-<style>
-  .sidebar {
-    width: 240px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  /* Mobile drawer styles */
-  .sidebar.mobile {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 280px;
-    height: 100%;
-    z-index: 100;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    border-right: none;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-  }
-
-  .sidebar.mobile.open {
-    transform: translateX(0);
-  }
-
-  .sidebar.mobile .sidebar-header {
-    padding-top: calc(1rem + env(safe-area-inset-top, 0));
-  }
-
-  .mobile-close-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .close-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-primary);
-    border-radius: 8px;
-  }
-
-  .close-btn:hover {
-    background: var(--bg-hover);
-  }
-
-  .close-btn svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  .sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .sidebar-header h2 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  .icon-btn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 1.25rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .icon-btn:hover {
-    background: var(--bg-hover);
-  }
-
-  .list-form {
-    padding: 0.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .list-form.inline {
-    padding: 0.5rem;
-    border-bottom: none;
-    background: var(--bg-hover);
-    border-radius: 6px;
-    margin-bottom: 0.25rem;
-  }
-
-  .list-form input {
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 0.875rem;
-    background: var(--bg-primary);
-  }
-
-  .account-select {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 0.875rem;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 44px;
-  }
-
-  .color-picker {
-    display: flex;
-    gap: 0.375rem;
-    flex-wrap: wrap;
-  }
-
-  .color-option {
-    width: 20px;
-    height: 20px;
-    border: 2px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .color-option:hover {
-    transform: scale(1.1);
-  }
-
-  .color-option.selected {
-    border-color: var(--text-primary);
-  }
-
-  .form-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .form-buttons button {
-    padding: 0.375rem 0.75rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-
-  .form-buttons button.primary {
-    background: var(--accent-color);
-    color: white;
-  }
-
-  .form-buttons button.primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .form-buttons button:not(.primary) {
-    background: transparent;
-  }
-
-  .special-nav {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .special-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 6px;
-    text-align: left;
-    font-size: 0.875rem;
-  }
-
-  .special-item:hover {
-    background: var(--bg-hover);
-  }
-
-  .special-item.selected {
-    background: var(--bg-selected);
-  }
-
-  .special-icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    color: var(--text-secondary);
-  }
-
-  .special-item.selected .special-icon {
-    color: var(--text-primary);
-  }
-
-  .list-nav {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.5rem;
-  }
-
-  .list-section-header {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-secondary);
-    padding: 0.75rem 0.75rem 0.375rem;
-    margin-top: 0.25rem;
-  }
-
-  .list-section-header:first-child {
-    margin-top: 0;
-  }
-
-  .list-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-  }
-
-  .list-item:hover {
-    background: var(--bg-hover);
-  }
-
-  .list-item.selected {
-    background: var(--bg-selected);
-  }
-
-  .list-color-btn {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    flex-shrink: 0;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .list-color-btn:hover {
-    transform: scale(1.15);
-  }
-
-  .list-name-btn {
-    flex: 1;
-    text-align: left;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.375rem;
-    border-radius: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .list-name-btn:hover {
-    background: var(--bg-hover);
-  }
-
-  .delete-btn {
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-    opacity: 0;
-    flex-shrink: 0;
-    transition: opacity 0.15s ease;
-  }
-
-  .delete-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .list-item:hover .delete-btn {
-    opacity: 1;
-  }
-
-  .delete-btn:hover {
-    background: var(--error-color, #ef4444);
-    color: white;
-  }
-
-  /* Mobile: always show delete button */
-  .delete-btn.mobile {
-    opacity: 1;
-    width: 44px;
-    height: 44px;
-  }
-
-  .delete-btn.mobile svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .error {
-    padding: 0.5rem 1rem;
-    color: var(--error-color);
-    font-size: 0.75rem;
-  }
-
-  .sidebar-footer {
-    margin-top: auto;
-    padding: 0.5rem;
-    border-top: 1px solid var(--border-color);
-  }
-
-  .settings-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.625rem 0.75rem;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 6px;
-    text-align: left;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .settings-btn svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  .settings-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .settings-btn.active {
-    background: var(--bg-selected);
-    color: var(--text-primary);
-  }
-
-  .sync-indicator {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-    color: var(--accent-color);
-  }
-
-  .sync-indicator svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-
-  .spinning {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-</style>

@@ -43,6 +43,13 @@
     return 'Low';
   }
 
+  function getPriorityClass(priority: number | null): string {
+    if (priority === null) return '';
+    if (priority <= 3) return 'preset-filled-error-500';
+    if (priority <= 6) return 'preset-filled-warning-500';
+    return 'preset-filled-primary-500';
+  }
+
   function getRecurrenceLabel(rrule: string | null): string {
     if (!rrule) return '';
     if (rrule.includes('FREQ=DAILY')) return 'Daily';
@@ -57,36 +64,48 @@
   );
 </script>
 
-<div class="task-item" class:completed={task.completed}>
+<div
+  class="group flex items-start gap-3 p-3 rounded-md transition-colors hover:bg-surface-100-900"
+  class:opacity-60={task.completed}
+>
+  <!-- Checkbox -->
   <button
-    class="checkbox"
-    class:checked={task.completed}
+    class="shrink-0 mt-0.5 w-5 h-5 md:w-11 md:h-11 rounded border-2 flex items-center justify-center transition-colors
+           {task.completed
+             ? 'bg-primary-500 border-primary-500 text-white'
+             : 'border-surface-400 hover:border-primary-500'}"
     onclick={handleToggle}
     aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
   >
     {#if task.completed}
-      <svg viewBox="0 0 24 24" fill="currentColor">
+      <svg class="w-3.5 h-3.5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor">
         <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
       </svg>
     {/if}
   </button>
 
-  <button class="task-content" onclick={() => onEdit?.(task)}>
-    <span class="task-title">{task.title}</span>
-    <div class="task-meta">
+  <!-- Task Content -->
+  <button
+    class="flex-1 min-w-0 text-left bg-transparent border-none cursor-pointer p-0"
+    onclick={() => onEdit?.(task)}
+  >
+    <span class="block text-[0.9375rem]" class:line-through={task.completed}>
+      {task.title}
+    </span>
+    <div class="flex flex-wrap gap-2 mt-1 text-xs">
       {#if task.due_date}
-        <span class="due-date" class:overdue={isOverdue}>
+        <span class:text-error-500={isOverdue} class:font-medium={isOverdue} class="text-surface-500">
           {formatDueDate(task.due_date)}
         </span>
       {/if}
       {#if task.priority}
-        <span class="priority priority-{getPriorityLabel(task.priority).toLowerCase()}">
+        <span class="badge {getPriorityClass(task.priority)} text-xs px-1.5 py-0.5">
           {getPriorityLabel(task.priority)}
         </span>
       {/if}
       {#if task.rrule}
-        <span class="recurrence">
-          <svg viewBox="0 0 24 24" fill="currentColor" class="recurrence-icon">
+        <span class="flex items-center gap-1 text-surface-500">
+          <svg class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
           </svg>
           {getRecurrenceLabel(task.rrule)}
@@ -95,184 +114,16 @@
     </div>
   </button>
 
-  <button class="delete-btn" onclick={handleDelete} title="Delete task">
-    <svg viewBox="0 0 24 24" fill="currentColor">
+  <!-- Delete Button -->
+  <button
+    class="shrink-0 w-7 h-7 md:w-11 md:h-11 flex items-center justify-center rounded bg-transparent border-none cursor-pointer
+           text-surface-500 opacity-0 md:opacity-100 group-hover:opacity-100 transition-opacity
+           hover:bg-surface-200-800 hover:text-error-500"
+    onclick={handleDelete}
+    title="Delete task"
+  >
+    <svg class="w-[18px] h-[18px] md:w-6 md:h-6" viewBox="0 0 24 24" fill="currentColor">
       <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
     </svg>
   </button>
 </div>
-
-<style>
-  .task-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 6px;
-    transition: background-color 0.15s;
-  }
-
-  .task-item:hover {
-    background: var(--bg-hover);
-  }
-
-  .task-item.completed {
-    opacity: 0.6;
-  }
-
-  .checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .checkbox:hover {
-    border-color: var(--accent-color);
-  }
-
-  .checkbox.checked {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: white;
-  }
-
-  .checkbox svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .task-content {
-    flex: 1;
-    min-width: 0;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    font: inherit;
-    text-align: left;
-    color: inherit;
-  }
-
-  .task-title {
-    display: block;
-    font-size: 0.9375rem;
-  }
-
-  .completed .task-title {
-    text-decoration: line-through;
-  }
-
-  .task-meta {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
-  }
-
-  .due-date {
-    color: var(--text-secondary);
-  }
-
-  .due-date.overdue {
-    color: var(--error-color);
-    font-weight: 500;
-  }
-
-  .priority {
-    padding: 0.125rem 0.375rem;
-    border-radius: 3px;
-    font-weight: 500;
-  }
-
-  .priority-high {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
-  }
-
-  .priority-medium {
-    background: var(--priority-medium-bg);
-    color: var(--priority-medium-text);
-  }
-
-  .priority-low {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
-  }
-
-  .recurrence {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: var(--text-secondary);
-  }
-
-  .recurrence-icon {
-    width: 12px;
-    height: 12px;
-  }
-
-  .delete-btn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    color: var(--text-secondary);
-  }
-
-  .task-item:hover .delete-btn {
-    opacity: 1;
-  }
-
-  .delete-btn:hover {
-    background: var(--bg-hover);
-    color: var(--error-color);
-  }
-
-  .delete-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  /* Mobile touch target improvements */
-  @media (max-width: 768px) {
-    .task-item {
-      padding: 0.5rem;
-    }
-
-    .checkbox {
-      width: 44px;
-      height: 44px;
-      margin-top: 0;
-    }
-
-    .checkbox svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    .delete-btn {
-      width: 44px;
-      height: 44px;
-      opacity: 1; /* Always visible on mobile */
-    }
-
-    .delete-btn svg {
-      width: 24px;
-      height: 24px;
-    }
-  }
-</style>
