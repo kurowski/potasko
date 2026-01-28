@@ -1,156 +1,52 @@
-/* Global styles for Potasko */
+@import 'tailwindcss';
 
-:root {
-  /* Responsive breakpoints */
-  --mobile-breakpoint: 768px;
-  --touch-target-min: 44px;
+/* Configure dark mode to use .dark class (Tailwind selector strategy) */
+@variant dark (&:where(.dark, .dark *));
 
-  /* Colors - Light mode */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-hover: #f3f4f6;
-  --bg-selected: #e5e7eb;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --accent-color: #3b82f6;
-  --error-color: #dc2626;
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
 
-  /* Priority colors - Light mode */
-  --priority-high-bg: #fee2e2;
-  --priority-high-text: #dc2626;
-  --priority-medium-bg: #fef3c7;
-  --priority-medium-text: #d97706;
-  --priority-low-bg: #dbeafe;
-  --priority-low-text: #2563eb;
+/* Import all available Skeleton themes (keep in sync with AVAILABLE_THEMES in theme.svelte.ts) */
+@import '@skeletonlabs/skeleton/themes/catppuccin';
+@import '@skeletonlabs/skeleton/themes/cerberus';
+@import '@skeletonlabs/skeleton/themes/concord';
+@import '@skeletonlabs/skeleton/themes/crimson';
+@import '@skeletonlabs/skeleton/themes/fennec';
+@import '@skeletonlabs/skeleton/themes/hamlindigo';
+@import '@skeletonlabs/skeleton/themes/legacy';
+@import '@skeletonlabs/skeleton/themes/mint';
+@import '@skeletonlabs/skeleton/themes/modern';
+@import '@skeletonlabs/skeleton/themes/mona';
+@import '@skeletonlabs/skeleton/themes/nosh';
+@import '@skeletonlabs/skeleton/themes/nouveau';
+@import '@skeletonlabs/skeleton/themes/pine';
+@import '@skeletonlabs/skeleton/themes/reign';
+@import '@skeletonlabs/skeleton/themes/rocket';
+@import '@skeletonlabs/skeleton/themes/rose';
+@import '@skeletonlabs/skeleton/themes/sahara';
+@import '@skeletonlabs/skeleton/themes/seafoam';
+@import '@skeletonlabs/skeleton/themes/terminus';
+@import '@skeletonlabs/skeleton/themes/vintage';
+@import '@skeletonlabs/skeleton/themes/vox';
+@import '@skeletonlabs/skeleton/themes/wintry';
 
-  /* Typography */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
-
-  /* Rendering */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
+/* Safe area insets for mobile */
+@layer base {
   :root {
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-hover: #374151;
-    --bg-selected: #4b5563;
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --border-color: #374151;
-    --accent-color: #60a5fa;
-    --error-color: #f87171;
+    --safe-area-top: env(safe-area-inset-top, 0);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0);
+  }
 
-    /* Priority colors - Dark mode */
-    --priority-high-bg: #7f1d1d;
-    --priority-high-text: #fca5a5;
-    --priority-medium-bg: #78350f;
-    --priority-medium-text: #fcd34d;
-    --priority-low-bg: #1e3a5f;
-    --priority-low-text: #93c5fd;
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    overflow: hidden;
   }
 }
 
-/* Reset */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  height: 100%;
-}
-
-body {
-  overflow: hidden;
-}
-
-/* Mobile drawer backdrop */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Mobile header */
-.mobile-header {
-  display: none;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.mobile-header h1 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.hamburger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--touch-target-min);
-  height: var(--touch-target-min);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-  border-radius: 8px;
-}
-
-.hamburger-btn:hover {
-  background: var(--bg-hover);
-}
-
-.hamburger-btn svg {
-  width: 24px;
-  height: 24px;
-}
-
-@media (max-width: 768px) {
-  .mobile-header {
-    display: flex;
-  }
-
-  /* Safe area padding for mobile devices */
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
-}
-
-/* Focus styles */
-:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
-
-/* Scrollbar styling */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -161,16 +57,20 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: rgb(var(--color-surface-400));
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: rgb(var(--color-surface-500));
 }
 
-/* Selection */
-::selection {
-  background: var(--accent-color);
-  color: white;
+/* Spin animation for sync indicators */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
