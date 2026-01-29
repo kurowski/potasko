@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { SyncResult, ListSyncStatus } from '$lib/types';
   import { syncList, getSyncStatus } from '$lib/api';
+  import Button from '@smui/button';
+  import CircularProgress from '@smui/circular-progress';
 
   interface Props {
     listId: number;
@@ -86,22 +88,22 @@
 
 {#if status?.has_caldav}
   <div class="sync-status">
-    <button
-      class="sync-button"
+    <Button
+      variant="outlined"
       onclick={handleSync}
       disabled={syncing}
       title={status.last_sync ? `Last sync: ${formatRelativeTime(status.last_sync)}` : 'Never synced'}
     >
       {#if syncing}
-        <span class="spinner"></span>
-        Syncing...
+        <CircularProgress style="height: 18px; width: 18px;" indeterminate />
       {:else}
-        Sync
-        {#if status.pending_changes > 0}
-          <span class="pending-badge">{status.pending_changes}</span>
-        {/if}
+        <span class="material-icons" style="font-size: 18px; margin-right: 4px;">sync</span>
       {/if}
-    </button>
+      Sync
+      {#if !syncing && status.pending_changes > 0}
+        <span class="pending-badge">{status.pending_changes}</span>
+      {/if}
+    </Button>
 
     {#if error}
       <span class="sync-error" title={error}>Sync failed</span>
@@ -120,30 +122,6 @@
     gap: 0.5rem;
   }
 
-  .sync-button {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.8125rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
-  }
-
-  .sync-button:hover:not(:disabled) {
-    background: var(--bg-hover);
-    border-color: var(--border-hover);
-  }
-
-  .sync-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
   .pending-badge {
     display: inline-flex;
     align-items: center;
@@ -151,33 +129,21 @@
     min-width: 1.25rem;
     height: 1.25rem;
     padding: 0 0.25rem;
+    margin-left: 0.25rem;
     font-size: 0.75rem;
     font-weight: 500;
-    background: var(--accent-color, #3b82f6);
+    background: var(--mdc-theme-primary, #3b82f6);
     color: white;
     border-radius: 10px;
   }
 
-  .spinner {
-    width: 0.875rem;
-    height: 0.875rem;
-    border: 2px solid var(--border-color);
-    border-top-color: var(--accent-color, #3b82f6);
-    border-radius: 50%;
-    animation: spin 0.75s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
   .sync-error {
     font-size: 0.75rem;
-    color: var(--error-color, #ef4444);
+    color: var(--mdc-theme-error, #dc2626);
   }
 
   .sync-summary {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 </style>

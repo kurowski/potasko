@@ -1,0 +1,3 @@
+// Light theme entry point - forwards to smui-theme package
+// The actual component styles are imported via smui-theme's _index.scss
+@forward 'smui-theme';

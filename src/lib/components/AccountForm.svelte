@@ -3,6 +3,9 @@
   import { accountStore } from '$lib/stores/accounts.svelte';
   import { listStore } from '$lib/stores/lists.svelte';
   import type { Account, CalendarInfo } from '$lib/types';
+  import Textfield from '@smui/textfield';
+  import Button from '@smui/button';
+  import List, { Item, Text, Graphic } from '@smui/list';
 
   interface Props {
     account?: Account | null;
@@ -122,6 +125,7 @@
     }
   });
 
+  const todoCalendars = $derived(discoveredCalendars.filter(c => c.supports_vtodo));
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -129,87 +133,82 @@
 <form class="account-form" onsubmit={handleSubmit}>
   <h3>{isEditing ? 'Edit Account' : 'Add CalDAV Account'}</h3>
 
-  <label class="form-field">
-    <span>Account Name</span>
-    <input
-      type="text"
-      bind:value={name}
-      placeholder="e.g., Work, Personal"
-      disabled={saving}
-    />
-  </label>
+  <Textfield
+    variant="outlined"
+    bind:value={name}
+    label="Account Name"
+    disabled={saving}
+    style="width: 100%;"
+  />
 
-  <label class="form-field">
-    <span>Server URL</span>
-    <input
-      type="url"
-      bind:value={serverUrl}
-      placeholder="https://caldav.example.com"
-      disabled={saving}
-    />
-  </label>
+  <Textfield
+    variant="outlined"
+    type="url"
+    bind:value={serverUrl}
+    label="Server URL"
+    disabled={saving}
+    style="width: 100%;"
+  />
 
-  <label class="form-field">
-    <span>Username</span>
-    <input
-      type="text"
-      bind:value={username}
-      placeholder="Username"
-      disabled={saving}
-    />
-  </label>
+  <Textfield
+    variant="outlined"
+    bind:value={username}
+    label="Username"
+    disabled={saving}
+    style="width: 100%;"
+  />
 
-  <label class="form-field">
-    <span>Password</span>
-    <input
-      type="password"
-      bind:value={password}
-      placeholder="Password"
-      disabled={saving}
-    />
-  </label>
+  <Textfield
+    variant="outlined"
+    type="password"
+    bind:value={password}
+    label="Password"
+    disabled={saving}
+    style="width: 100%;"
+  />
 
   <div class="test-section">
-    <button
-      type="button"
-      class="test-btn"
+    <Button
+      variant="outlined"
       onclick={handleTestConnection}
       disabled={!serverUrl.trim() || !username.trim() || !password.trim() || accountStore.testing || saving}
     >
+      <span class="material-icons" style="font-size: 18px; margin-right: 8px;">
+        {accountStore.testing ? 'hourglass_empty' : 'wifi_tethering'}
+      </span>
       {accountStore.testing ? 'Testing...' : 'Test Connection'}
-    </button>
+    </Button>
 
     {#if accountStore.testResult}
       {#if accountStore.testResult.success}
         <div class="test-result success">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-          </svg>
+          <span class="material-icons">check_circle</span>
           <span>Connection successful!</span>
         </div>
         {#if discoveredCalendars.length > 0}
           <div class="calendars">
             <span class="calendars-label">Discovered calendars with tasks:</span>
-            <ul>
-              {#each discoveredCalendars.filter(c => c.supports_vtodo) as cal}
-                <li>
-                  {#if cal.color}
-                    <span class="cal-color" style:background-color={cal.color}></span>
-                  {/if}
-                  {cal.display_name || cal.href}
-                </li>
-              {/each}
-              {#if discoveredCalendars.filter(c => c.supports_vtodo).length === 0}
-                <li class="no-calendars">No calendars with task support found</li>
-              {/if}
-            </ul>
+            {#if todoCalendars.length > 0}
+              <List dense>
+                {#each todoCalendars as cal}
+                  <Item>
+                    {#if cal.color}
+                      <Graphic>
+                        <span class="cal-color" style:background-color={cal.color}></span>
+                      </Graphic>
+                    {/if}
+                    <Text>{cal.display_name || cal.href}</Text>
+                  </Item>
+                {/each}
+              </List>
+            {:else}
+              <p class="no-calendars">No calendars with task support found</p>
+            {/if}
           </div>
         {/if}
       {:else}
         <div class="test-result error">
-          <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-          </svg>
+          <span class="material-icons">error</span>
           <span>{accountStore.testResult.error || 'Connection failed'}</span>
         </div>
       {/if}
@@ -221,10 +220,12 @@
   {/if}
 
   <div class="form-actions">
-    <button type="button" onclick={onClose} disabled={saving}>Cancel</button>
-    <button
+    <Button variant="text" onclick={onClose} disabled={saving}>
+      Cancel
+    </Button>
+    <Button
+      variant="raised"
       type="submit"
-      class="primary"
       disabled={!name.trim() || !serverUrl.trim() || !username.trim() || !password.trim() || saving || (!isEditing && !connectionValid)}
       title={!isEditing && !connectionValid ? 'Test connection first' : ''}
     >
@@ -237,7 +238,7 @@
       {:else}
         Add Account
       {/if}
-    </button>
+    </Button>
   </div>
   {#if !isEditing && !connectionValid && name.trim() && serverUrl.trim() && username.trim() && password.trim()}
     <p class="hint">Please test the connection before adding the account.</p>
@@ -250,38 +251,12 @@
     flex-direction: column;
     gap: 1rem;
     padding: 1.5rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
   }
 
   h3 {
     margin: 0 0 0.5rem;
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .form-field span {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .form-field input {
-    padding: 0.625rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.9375rem;
-    background: var(--bg-primary);
-  }
-
-  .form-field input:focus {
-    outline: none;
-    border-color: var(--accent-color);
+    font-size: 1.25rem;
+    font-weight: 500;
   }
 
   .test-section {
@@ -291,92 +266,76 @@
     padding-top: 0.5rem;
   }
 
-  .test-btn {
-    align-self: flex-start;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--bg-primary);
-    cursor: pointer;
-    font-size: 0.875rem;
-  }
-
-  .test-btn:hover:not(:disabled) {
-    background: var(--bg-hover);
-  }
-
-  .test-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
   .test-result {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
     font-size: 0.875rem;
   }
 
   .test-result.success {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
+    background: #dcfce7;
+    color: #166534;
   }
 
   .test-result.error {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
+    background: #fee2e2;
+    color: #991b1b;
   }
 
-  .test-result .icon {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
+  @media (prefers-color-scheme: dark) {
+    .test-result.success {
+      background: #14532d;
+      color: #bbf7d0;
+    }
+
+    .test-result.error {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+  }
+
+  .test-result .material-icons {
+    font-size: 20px;
   }
 
   .calendars {
-    padding: 0.75rem;
-    background: var(--bg-primary);
-    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    background: var(--mdc-theme-surface, #fff);
+    border-radius: 8px;
     font-size: 0.875rem;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .calendars {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
   }
 
   .calendars-label {
     display: block;
     margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-  }
-
-  .calendars ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-
-  .calendars li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .cal-color {
     width: 12px;
     height: 12px;
     border-radius: 3px;
-    flex-shrink: 0;
+    display: inline-block;
   }
 
   .no-calendars {
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     font-style: italic;
+    margin: 0;
   }
 
   .error {
-    color: var(--error-color);
+    color: var(--mdc-theme-error, #dc2626);
     font-size: 0.875rem;
     margin: 0;
   }
@@ -384,42 +343,14 @@
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.75rem;
+    gap: 0.5rem;
     padding-top: 0.5rem;
-  }
-
-  .form-actions button {
-    padding: 0.625rem 1.25rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .form-actions button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .form-actions button.primary {
-    background: var(--accent-color);
-    color: white;
-  }
-
-  .form-actions button:not(.primary) {
-    background: transparent;
-    border: 1px solid var(--border-color);
-  }
-
-  .form-actions button:not(.primary):hover:not(:disabled) {
-    background: var(--bg-hover);
   }
 
   .hint {
     margin: 0;
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     text-align: right;
   }
 </style>

@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Task } from '$lib/types';
   import { taskStore } from '$lib/stores/tasks.svelte';
+  import Checkbox from '@smui/checkbox';
+  import IconButton from '@smui/icon-button';
 
   interface Props {
     task: Task;
@@ -58,18 +60,13 @@
 </script>
 
 <div class="task-item" class:completed={task.completed}>
-  <button
-    class="checkbox"
-    class:checked={task.completed}
-    onclick={handleToggle}
-    aria-label={task.completed ? 'Mark incomplete' : 'Mark complete'}
-  >
-    {#if task.completed}
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-      </svg>
-    {/if}
-  </button>
+  <div class="checkbox-wrapper">
+    <Checkbox
+      checked={task.completed}
+      onclick={handleToggle}
+      touch
+    />
+  </div>
 
   <button class="task-content" onclick={() => onEdit?.(task)}>
     <span class="task-title">{task.title}</span>
@@ -86,67 +83,40 @@
       {/if}
       {#if task.rrule}
         <span class="recurrence">
-          <svg viewBox="0 0 24 24" fill="currentColor" class="recurrence-icon">
-            <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-          </svg>
+          <span class="material-icons recurrence-icon">repeat</span>
           {getRecurrenceLabel(task.rrule)}
         </span>
       {/if}
     </div>
   </button>
 
-  <button class="delete-btn" onclick={handleDelete} title="Delete task">
-    <svg viewBox="0 0 24 24" fill="currentColor">
-      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-    </svg>
-  </button>
+  <div class="delete-wrapper">
+    <IconButton onclick={handleDelete} title="Delete task">
+      <span class="material-icons">delete</span>
+    </IconButton>
+  </div>
 </div>
 
 <style>
   .task-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 6px;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 8px;
     transition: background-color 0.15s;
   }
 
   .task-item:hover {
-    background: var(--bg-hover);
+    background: var(--mdc-theme-surface, #fff);
   }
 
   .task-item.completed {
     opacity: 0.6;
   }
 
-  .checkbox {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .checkbox-wrapper {
     flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .checkbox:hover {
-    border-color: var(--accent-color);
-  }
-
-  .checkbox.checked {
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-    color: white;
-  }
-
-  .checkbox svg {
-    width: 14px;
-    height: 14px;
   }
 
   .task-content {
@@ -155,7 +125,7 @@
     cursor: pointer;
     background: none;
     border: none;
-    padding: 0;
+    padding: 0.25rem 0;
     font: inherit;
     text-align: left;
     color: inherit;
@@ -172,107 +142,107 @@
 
   .task-meta {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.25rem;
     font-size: 0.75rem;
   }
 
   .due-date {
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .due-date.overdue {
-    color: var(--error-color);
+    color: var(--mdc-theme-error, #dc2626);
     font-weight: 500;
   }
 
   .priority {
-    padding: 0.125rem 0.375rem;
-    border-radius: 3px;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
     font-weight: 500;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
   }
 
   .priority-high {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
+    background: #fecaca;
+    color: #991b1b;
   }
 
   .priority-medium {
-    background: var(--priority-medium-bg);
-    color: var(--priority-medium-text);
+    background: #fef3c7;
+    color: #92400e;
   }
 
   .priority-low {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  :global(.dark) .priority-high {
+    background: #7f1d1d;
+    color: #fecaca;
+  }
+
+  :global(.dark) .priority-medium {
+    background: #78350f;
+    color: #fef3c7;
+  }
+
+  :global(.dark) .priority-low {
+    background: #1e3a8a;
+    color: #dbeafe;
   }
 
   .recurrence {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    color: var(--text-secondary);
+    gap: 0.125rem;
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .recurrence-icon {
-    width: 12px;
-    height: 12px;
+    font-size: 14px;
   }
 
-  .delete-btn {
-    width: 28px;
-    height: 28px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .delete-wrapper {
+    flex-shrink: 0;
     opacity: 0;
-    color: var(--text-secondary);
+    transition: opacity 0.15s;
   }
 
-  .task-item:hover .delete-btn {
+  .task-item:hover .delete-wrapper {
     opacity: 1;
-  }
-
-  .delete-btn:hover {
-    background: var(--bg-hover);
-    color: var(--error-color);
-  }
-
-  .delete-btn svg {
-    width: 18px;
-    height: 18px;
   }
 
   /* Mobile touch target improvements */
   @media (max-width: 768px) {
     .task-item {
-      padding: 0.5rem;
+      padding: 0.25rem;
     }
 
-    .checkbox {
-      width: 44px;
-      height: 44px;
-      margin-top: 0;
-    }
-
-    .checkbox svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    .delete-btn {
-      width: 44px;
-      height: 44px;
+    .delete-wrapper {
       opacity: 1; /* Always visible on mobile */
     }
+  }
 
-    .delete-btn svg {
-      width: 24px;
-      height: 24px;
+  /* Dark mode via prefers-color-scheme */
+  @media (prefers-color-scheme: dark) {
+    .priority-high {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    .priority-medium {
+      background: #78350f;
+      color: #fef3c7;
+    }
+
+    .priority-low {
+      background: #1e3a8a;
+      color: #dbeafe;
     }
   }
 </style>
