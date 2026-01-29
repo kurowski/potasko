@@ -101,10 +101,10 @@
   .task-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: background-color 0.15s;
+    gap: var(--app-spacing-2);
+    padding: var(--app-spacing-2);
+    border-radius: var(--app-radius-md);
+    transition: background-color var(--app-transition-normal);
   }
 
   .task-item:hover {
@@ -125,7 +125,7 @@
     cursor: pointer;
     background: none;
     border: none;
-    padding: 0.25rem 0;
+    padding: var(--app-spacing-1) 0;
     font: inherit;
     text-align: left;
     color: inherit;
@@ -143,9 +143,9 @@
   .task-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-    font-size: 0.75rem;
+    gap: var(--app-spacing-2);
+    margin-top: var(--app-spacing-1);
+    font-size: var(--app-font-size-xs);
   }
 
   .due-date {
@@ -158,49 +158,34 @@
   }
 
   .priority {
-    padding: 0.125rem 0.5rem;
-    border-radius: 12px;
+    padding: 0.125rem var(--app-spacing-2);
+    border-radius: var(--app-radius-lg);
     font-weight: 500;
-    font-size: 0.6875rem;
+    font-size: var(--app-font-size-2xs);
     text-transform: uppercase;
     letter-spacing: 0.025em;
   }
 
   .priority-high {
-    background: #fecaca;
-    color: #991b1b;
+    background: var(--app-color-priority-high-bg);
+    color: var(--app-color-priority-high-text);
   }
 
   .priority-medium {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--app-color-priority-medium-bg);
+    color: var(--app-color-priority-medium-text);
   }
 
   .priority-low {
-    background: #dbeafe;
-    color: #1e40af;
-  }
-
-  :global(.dark) .priority-high {
-    background: #7f1d1d;
-    color: #fecaca;
-  }
-
-  :global(.dark) .priority-medium {
-    background: #78350f;
-    color: #fef3c7;
-  }
-
-  :global(.dark) .priority-low {
-    background: #1e3a8a;
-    color: #dbeafe;
+    background: var(--app-color-priority-low-bg);
+    color: var(--app-color-priority-low-text);
   }
 
   .recurrence {
     display: flex;
     align-items: center;
     gap: 0.125rem;
-    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+    color: var(--mdc-theme-text-secondary-on-background, var(--app-color-border));
   }
 
   .recurrence-icon {
@@ -210,7 +195,7 @@
   .delete-wrapper {
     flex-shrink: 0;
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity var(--app-transition-normal);
   }
 
   .task-item:hover .delete-wrapper {
@@ -220,29 +205,12 @@
   /* Mobile touch target improvements */
   @media (max-width: 768px) {
     .task-item {
-      padding: 0.25rem;
+      padding: var(--app-spacing-1);
     }
 
     .delete-wrapper {
       opacity: 1; /* Always visible on mobile */
     }
   }
-
-  /* Dark mode via prefers-color-scheme */
-  @media (prefers-color-scheme: dark) {
-    .priority-high {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
-
-    .priority-medium {
-      background: #78350f;
-      color: #fef3c7;
-    }
-
-    .priority-low {
-      background: #1e3a8a;
-      color: #dbeafe;
-    }
-  }
+  /* No dark mode block needed - CSS variables handle it */
 </style>

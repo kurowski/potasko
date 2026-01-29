@@ -119,7 +119,7 @@
   .sync-status {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--app-spacing-2);
   }
 
   .pending-badge {
@@ -128,9 +128,9 @@
     justify-content: center;
     min-width: 1.25rem;
     height: 1.25rem;
-    padding: 0 0.25rem;
-    margin-left: 0.25rem;
-    font-size: 0.75rem;
+    padding: 0 var(--app-spacing-1);
+    margin-left: var(--app-spacing-1);
+    font-size: var(--app-font-size-xs);
     font-weight: 500;
     background: var(--mdc-theme-primary, #3b82f6);
     color: white;
@@ -138,12 +138,12 @@
   }
 
   .sync-error {
-    font-size: 0.75rem;
+    font-size: var(--app-font-size-xs);
     color: var(--mdc-theme-error, #dc2626);
   }
 
   .sync-summary {
-    font-size: 0.75rem;
+    font-size: var(--app-font-size-xs);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 </style>

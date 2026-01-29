@@ -210,7 +210,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 50;
+    z-index: var(--app-z-app-bar);
   }
 
   .main-content {
@@ -230,32 +230,32 @@
     align-items: center;
     justify-content: center;
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
-    gap: 0.5rem;
+    gap: var(--app-spacing-2);
   }
 
   .empty-icon {
     font-size: 64px;
     opacity: 0.4;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--app-spacing-2);
   }
 
   .empty-state p {
-    margin: 0.25rem 0;
+    margin: var(--app-spacing-1) 0;
   }
 
   .empty-state .hint {
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
   }
 
   .settings-panel {
     flex: 1;
-    padding: 1.5rem;
+    padding: var(--app-spacing-6);
     overflow-y: auto;
   }
 
   @media (max-width: 768px) {
     .settings-panel {
-      padding: 1rem;
+      padding: var(--app-spacing-4);
     }
   }
 
@@ -263,11 +263,11 @@
   .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    background: var(--app-color-backdrop);
+    z-index: var(--app-z-backdrop);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--app-transition-slow);
   }
 
   .backdrop.visible {
@@ -278,9 +278,9 @@
   /* FAB positioning */
   :global(.add-task-fab) {
     position: fixed !important;
-    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
-    right: 1.5rem;
-    z-index: 50;
+    bottom: calc(var(--app-spacing-6) + env(safe-area-inset-bottom, 0));
+    right: var(--app-spacing-6);
+    z-index: var(--app-z-app-bar);
   }
 
   /* Dialog content adjustments */
@@ -289,7 +289,7 @@
   }
 
   :global(.mdc-dialog .form-actions) {
-    padding-top: 1rem;
+    padding-top: var(--app-spacing-4);
     padding-bottom: 0;
   }
 </style>

@@ -196,7 +196,7 @@
   .account-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .header {
@@ -204,12 +204,12 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .header h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--app-font-size-lg);
     font-weight: 500;
   }
 
@@ -219,7 +219,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
@@ -240,18 +240,18 @@
   }
 
   .empty-state p {
-    margin: 0.25rem 0;
+    margin: var(--app-spacing-1) 0;
   }
 
   .empty-state .hint {
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
     opacity: 0.8;
   }
 
   .accounts {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--app-spacing-3);
   }
 
   :global(.account-card) {
@@ -262,24 +262,24 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    gap: 1rem;
+    padding: var(--app-spacing-4);
+    gap: var(--app-spacing-4);
   }
 
   .account-info {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--app-spacing-1);
     min-width: 0;
   }
 
   .account-name {
     font-weight: 500;
-    font-size: 1rem;
+    font-size: var(--app-font-size-base);
   }
 
   .account-server {
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     overflow: hidden;
     text-overflow: ellipsis;
@@ -294,7 +294,7 @@
 
   .account-actions {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--app-spacing-1);
     flex-shrink: 0;
   }
 
@@ -305,32 +305,20 @@
   .sync-result {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
+    gap: var(--app-spacing-2);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
   }
 
   .sync-result.success {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--app-color-status-success-bg);
+    color: var(--app-color-status-success-text);
   }
 
   .sync-result.error {
-    background: #fee2e2;
-    color: #991b1b;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .sync-result.success {
-      background: #14532d;
-      color: #bbf7d0;
-    }
-
-    .sync-result.error {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
+    background: var(--app-color-status-error-bg);
+    color: var(--app-color-status-error-text);
   }
 
   .sync-result .material-icons {
@@ -338,25 +326,18 @@
   }
 
   :global(.form-card) {
-    margin-top: 1rem;
+    margin-top: var(--app-spacing-4);
   }
 
   .error-message {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: var(--mdc-theme-error, #dc2626);
-    font-size: 0.875rem;
-    padding: 0.75rem 1rem;
-    background: #fee2e2;
-    border-radius: 8px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .error-message {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
+    gap: var(--app-spacing-2);
+    color: var(--app-color-status-error-text);
+    font-size: var(--app-font-size-sm);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    background: var(--app-color-status-error-bg);
+    border-radius: var(--app-radius-md);
   }
 
   .error-message .material-icons {

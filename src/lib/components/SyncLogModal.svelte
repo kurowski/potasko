@@ -166,7 +166,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
     padding: 2rem;
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
@@ -179,7 +179,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--app-spacing-2);
     padding: 2rem;
     color: var(--mdc-theme-error, #dc2626);
   }
@@ -188,7 +188,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--app-spacing-2);
     padding: 2rem;
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
@@ -208,55 +208,38 @@
 
   :global(.timestamp-cell) {
     white-space: nowrap;
-    font-size: 0.75rem;
+    font-size: var(--app-font-size-xs);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .status {
-    font-size: 0.6875rem;
-    padding: 0.125rem 0.5rem;
-    border-radius: 4px;
+    font-size: var(--app-font-size-2xs);
+    padding: 0.125rem var(--app-spacing-2);
+    border-radius: var(--app-radius-sm);
     text-transform: uppercase;
     font-weight: 500;
     white-space: nowrap;
   }
 
   .status-success {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--app-color-status-success-bg);
+    color: var(--app-color-status-success-text);
   }
 
   .status-error {
-    background: #fee2e2;
-    color: #991b1b;
+    background: var(--app-color-status-error-bg);
+    color: var(--app-color-status-error-text);
   }
 
   .status-conflict {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .status-success {
-      background: #14532d;
-      color: #bbf7d0;
-    }
-
-    .status-error {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
-
-    .status-conflict {
-      background: #78350f;
-      color: #fef3c7;
-    }
+    background: var(--app-color-status-warning-bg);
+    color: var(--app-color-status-warning-text);
   }
 
   :global(.details-cell) {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--app-spacing-1);
     max-width: 300px;
   }
 
@@ -267,7 +250,7 @@
   }
 
   .meta {
-    font-size: 0.6875rem;
+    font-size: var(--app-font-size-2xs);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     opacity: 0.8;
   }
@@ -275,6 +258,6 @@
   .load-more {
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: var(--app-spacing-4) 0;
   }
 </style>

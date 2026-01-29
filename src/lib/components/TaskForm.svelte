@@ -177,15 +177,15 @@
 
 <style>
   .task-form {
-    padding: 1.5rem;
+    padding: var(--app-spacing-6);
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .form-row {
     display: flex;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .form-field {
@@ -209,34 +209,34 @@
   }
 
   .priority-indicator.priority-high {
-    background: #dc2626;
+    background: var(--app-color-priority-high);
   }
 
   .priority-indicator.priority-medium {
-    background: #f59e0b;
+    background: var(--app-color-priority-medium);
   }
 
   .priority-indicator.priority-low {
-    background: #3b82f6;
+    background: var(--app-color-priority-low);
   }
 
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
+    gap: var(--app-spacing-2);
+    padding-top: var(--app-spacing-2);
   }
 
   /* Mobile adjustments */
   @media (max-width: 768px) {
     .task-form {
-      padding: 1rem;
-      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+      padding: var(--app-spacing-4);
+      padding-bottom: calc(var(--app-spacing-4) + env(safe-area-inset-bottom, 0));
     }
 
     .form-row {
       flex-direction: column;
-      gap: 1rem;
+      gap: var(--app-spacing-4);
     }
   }
 </style>

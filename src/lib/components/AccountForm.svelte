@@ -249,52 +249,40 @@
   .account-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: var(--app-spacing-4);
+    padding: var(--app-spacing-6);
   }
 
   h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1.25rem;
+    margin: 0 0 var(--app-spacing-2);
+    font-size: var(--app-font-size-lg);
     font-weight: 500;
   }
 
   .test-section {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-    padding-top: 0.5rem;
+    gap: var(--app-spacing-3);
+    padding-top: var(--app-spacing-2);
   }
 
   .test-result {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
+    gap: var(--app-spacing-2);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
   }
 
   .test-result.success {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--app-color-status-success-bg);
+    color: var(--app-color-status-success-text);
   }
 
   .test-result.error {
-    background: #fee2e2;
-    color: #991b1b;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .test-result.success {
-      background: #14532d;
-      color: #bbf7d0;
-    }
-
-    .test-result.error {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
+    background: var(--app-color-status-error-bg);
+    color: var(--app-color-status-error-text);
   }
 
   .test-result .material-icons {
@@ -302,22 +290,16 @@
   }
 
   .calendars {
-    padding: 0.75rem 1rem;
+    padding: var(--app-spacing-3) var(--app-spacing-4);
     background: var(--mdc-theme-surface, #fff);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .calendars {
-      border-color: rgba(255, 255, 255, 0.12);
-    }
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
+    border: 1px solid var(--app-color-border);
   }
 
   .calendars-label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--app-spacing-2);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
@@ -336,15 +318,15 @@
 
   .error {
     color: var(--mdc-theme-error, #dc2626);
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
     margin: 0;
   }
 
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
+    gap: var(--app-spacing-2);
+    padding-top: var(--app-spacing-2);
   }
 
   .hint {

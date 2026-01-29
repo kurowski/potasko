@@ -134,30 +134,23 @@
   .loading {
     display: flex;
     justify-content: center;
-    padding: 1rem 0;
+    padding: var(--app-spacing-4) 0;
   }
 
   .message {
-    margin: 0 0 1rem;
+    margin: 0 0 var(--app-spacing-4);
     line-height: 1.5;
   }
 
   .sync-warning {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: #fef3c7;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: #92400e;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .sync-warning {
-      background: #78350f;
-      color: #fef3c7;
-    }
+    gap: var(--app-spacing-3);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    background: var(--app-color-status-warning-bg);
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
+    color: var(--app-color-status-warning-text);
   }
 
   .sync-warning .material-icons {
@@ -168,7 +161,7 @@
   .warning-message {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: var(--app-spacing-3);
     color: var(--mdc-theme-error, #dc2626);
   }
 
@@ -179,33 +172,26 @@
   }
 
   .warning-text {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--app-spacing-2);
     line-height: 1.5;
   }
 
   .secondary-text {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
     color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .error-message {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: #fee2e2;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    color: #991b1b;
-    margin-top: 1rem;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .error-message {
-      background: #7f1d1d;
-      color: #fecaca;
-    }
+    gap: var(--app-spacing-2);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    background: var(--app-color-status-error-bg);
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
+    color: var(--app-color-status-error-text);
+    margin-top: var(--app-spacing-4);
   }
 
   .error-message .material-icons {

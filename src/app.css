@@ -1,5 +1,92 @@
 /* Potasko - Minimal custom styles (SMUI handles most styling) */
 
+/* === CSS Custom Properties (Theme Variables) === */
+:root {
+  /* === COLORS === */
+
+  /* Priority badges */
+  --app-color-priority-high-bg: #fecaca;
+  --app-color-priority-high-text: #991b1b;
+  --app-color-priority-medium-bg: #fef3c7;
+  --app-color-priority-medium-text: #92400e;
+  --app-color-priority-low-bg: #dbeafe;
+  --app-color-priority-low-text: #1e40af;
+
+  /* Priority indicator dots (solid) */
+  --app-color-priority-high: #dc2626;
+  --app-color-priority-medium: #f59e0b;
+  --app-color-priority-low: #3b82f6;
+
+  /* Status feedback */
+  --app-color-status-success-bg: #dcfce7;
+  --app-color-status-success-text: #166534;
+  --app-color-status-error-bg: #fee2e2;
+  --app-color-status-error-text: #991b1b;
+  --app-color-status-warning-bg: #fef3c7;
+  --app-color-status-warning-text: #92400e;
+
+  /* Borders and surfaces */
+  --app-color-border: rgba(0, 0, 0, 0.12);
+  --app-color-backdrop: rgba(0, 0, 0, 0.5);
+  --app-color-surface-hover: rgba(0, 0, 0, 0.04);
+
+  /* === TYPOGRAPHY === */
+  --app-font-size-2xs: 0.6875rem;   /* 11px */
+  --app-font-size-xs: 0.75rem;      /* 12px */
+  --app-font-size-sm: 0.875rem;     /* 14px */
+  --app-font-size-base: 1rem;       /* 16px */
+  --app-font-size-lg: 1.25rem;      /* 20px */
+  --app-font-size-xl: 1.5rem;       /* 24px */
+
+  /* === SPACING === */
+  --app-spacing-1: 0.25rem;   /* 4px */
+  --app-spacing-2: 0.5rem;    /* 8px */
+  --app-spacing-3: 0.75rem;   /* 12px */
+  --app-spacing-4: 1rem;      /* 16px */
+  --app-spacing-6: 1.5rem;    /* 24px */
+
+  /* === BORDER RADIUS === */
+  --app-radius-sm: 4px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 12px;
+
+  /* === TRANSITIONS === */
+  --app-transition-fast: 0.1s ease;
+  --app-transition-normal: 0.15s ease;
+  --app-transition-slow: 0.3s ease;
+
+  /* === Z-INDEX === */
+  --app-z-app-bar: 50;
+  --app-z-backdrop: 99;
+  --app-z-drawer: 100;
+
+  /* === SHADOWS === */
+  --app-shadow-drawer: 0 8px 10px -5px rgba(0, 0, 0, 0.2),
+                       0 16px 24px 2px rgba(0, 0, 0, 0.14),
+                       0 6px 30px 5px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-color-priority-high-bg: #7f1d1d;
+    --app-color-priority-high-text: #fecaca;
+    --app-color-priority-medium-bg: #78350f;
+    --app-color-priority-medium-text: #fef3c7;
+    --app-color-priority-low-bg: #1e3a8a;
+    --app-color-priority-low-text: #dbeafe;
+
+    --app-color-status-success-bg: #14532d;
+    --app-color-status-success-text: #bbf7d0;
+    --app-color-status-error-bg: #7f1d1d;
+    --app-color-status-error-text: #fecaca;
+    --app-color-status-warning-bg: #78350f;
+    --app-color-status-warning-text: #fef3c7;
+
+    --app-color-border: rgba(255, 255, 255, 0.12);
+    --app-color-surface-hover: rgba(255, 255, 255, 0.04);
+  }
+}
+
 /* Reset */
 *,
 *::before,
@@ -31,41 +118,25 @@ body {
 
 /* Priority chip colors (custom - not part of SMUI) */
 .priority-high {
-  background: #fecaca !important;
-  color: #991b1b !important;
+  background: var(--app-color-priority-high-bg) !important;
+  color: var(--app-color-priority-high-text) !important;
 }
 
 .priority-medium {
-  background: #fef3c7 !important;
-  color: #92400e !important;
+  background: var(--app-color-priority-medium-bg) !important;
+  color: var(--app-color-priority-medium-text) !important;
 }
 
 .priority-low {
-  background: #dbeafe !important;
-  color: #1e40af !important;
+  background: var(--app-color-priority-low-bg) !important;
+  color: var(--app-color-priority-low-text) !important;
 }
-
-@media (prefers-color-scheme: dark) {
-  .priority-high {
-    background: #7f1d1d !important;
-    color: #fecaca !important;
-  }
-
-  .priority-medium {
-    background: #78350f !important;
-    color: #fef3c7 !important;
-  }
-
-  .priority-low {
-    background: #1e3a8a !important;
-    color: #dbeafe !important;
-  }
-}
+/* No dark mode block needed - variables handle it */
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--app-spacing-2);
+  height: var(--app-spacing-2);
 }
 
 ::-webkit-scrollbar-track {
@@ -74,7 +145,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
+  border-radius: var(--app-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
