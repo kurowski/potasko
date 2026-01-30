@@ -8,10 +8,16 @@
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
   import AccountList from '$lib/components/AccountList.svelte';
+  import TopAppBar, { Row, Section, Title } from '@smui/top-app-bar';
+  import IconButton from '@smui/icon-button';
+  import Fab from '@smui/fab';
+  import Dialog, { Title as DialogTitle, Content, Actions } from '@smui/dialog';
+  import Button from '@smui/button';
+  import CircularProgress from '@smui/circular-progress';
 
   let editingTask = $state<Task | null>(null);
   let showSettings = $state(false);
-  let showMobileForm = $state(false);
+  let taskDialogOpen = $state(false);
 
   // Mobile responsiveness state
   const MOBILE_BREAKPOINT = 768;
@@ -85,39 +91,38 @@
 
   function handleEditTask(task: Task) {
     editingTask = task;
-    if (isMobile) {
-      showMobileForm = true;
-    }
+    taskDialogOpen = true;
   }
 
-  function handleCloseEdit() {
+  function handleAddTask() {
     editingTask = null;
-    showMobileForm = false;
+    taskDialogOpen = true;
+  }
+
+  function handleCloseTaskDialog() {
+    taskDialogOpen = false;
+    editingTask = null;
   }
 
   function handleToggleSettings() {
     showSettings = !showSettings;
-  }
-
-  function handleFabClick() {
-    editingTask = null;
-    showMobileForm = true;
   }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
 <div class="app-layout" class:mobile={isMobile}>
   {#if isMobile}
-    <header class="mobile-header">
-      <button class="hamburger-btn" onclick={toggleSidebar} aria-label="Toggle menu">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
-      <h1>{currentViewTitle()}</h1>
-    </header>
+    <TopAppBar variant="fixed" dense class="mobile-app-bar">
+      <Row>
+        <Section>
+          <IconButton onclick={toggleSidebar}>
+            <span class="material-icons">menu</span>
+          </IconButton>
+          <Title>{currentViewTitle()}</Title>
+        </Section>
+      </Row>
+    </TopAppBar>
+    <div class="top-app-bar-spacer"></div>
   {/if}
 
   <Sidebar
@@ -138,56 +143,49 @@
         <AccountList />
       </div>
     {:else if listStore.selectedView}
-      <TaskListView onEditTask={handleEditTask} />
-      {#if canAddTasks}
-        {#if !isMobile}
-          <!-- Desktop: inline form -->
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
-        {/if}
-      {/if}
+      <TaskListView onEditTask={handleEditTask} onAddTask={handleAddTask} />
     {:else if listStore.loading}
-      <div class="loading-state">Loading...</div>
+      <div class="loading-state">
+        <CircularProgress indeterminate />
+        <p>Loading...</p>
+      </div>
     {:else}
       <div class="empty-state">
+        <span class="material-icons empty-icon">checklist</span>
         <p>No lists yet</p>
-        <p>Create a list to get started</p>
+        <p class="hint">Create a list to get started</p>
       </div>
     {/if}
   </main>
 
-  <!-- Mobile: FAB and modal form -->
+  <!-- FAB for mobile - add task -->
   {#if isMobile && canAddTasks && !showSettings}
-    {#if showMobileForm}
-      <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-      <div class="form-modal-backdrop" onclick={handleCloseEdit}>
-        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-        <div class="form-modal" onclick={(e) => e.stopPropagation()}>
-          <div class="form-modal-handle"></div>
-          <div class="form-modal-header">
-            <span>{editingTask ? 'Edit Task' : 'New Task'}</span>
-            <button class="form-modal-close" onclick={handleCloseEdit} aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          {#key editingTask?.id}
-            <TaskForm task={editingTask} onClose={handleCloseEdit} />
-          {/key}
-        </div>
-      </div>
-    {:else}
-      <button class="fab" onclick={handleFabClick} aria-label="Add task">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-      </button>
-    {/if}
+    <Fab
+      onclick={handleAddTask}
+      class="add-task-fab"
+      extended
+    >
+      <span class="material-icons">add</span>
+      Add Task
+    </Fab>
   {/if}
+
+  <!-- Task Dialog (used for both desktop and mobile) -->
+  <Dialog
+    bind:open={taskDialogOpen}
+    fullscreen={isMobile}
+    aria-labelledby="task-dialog-title"
+    surface$style={isMobile ? '' : 'max-width: 500px; width: 90vw;'}
+  >
+    <DialogTitle id="task-dialog-title">
+      {editingTask ? 'Edit Task' : 'New Task'}
+    </DialogTitle>
+    <Content>
+      {#key editingTask?.id}
+        <TaskForm task={editingTask} onClose={handleCloseTaskDialog} />
+      {/key}
+    </Content>
+  </Dialog>
 </div>
 
 <style>
@@ -195,10 +193,24 @@
     display: flex;
     height: 100%;
     overflow: hidden;
+    background: var(--mdc-theme-background, #f9fafb);
   }
 
   .app-layout.mobile {
     flex-direction: column;
+  }
+
+  .top-app-bar-spacer {
+    height: 48px; /* Dense app bar height */
+    flex-shrink: 0;
+  }
+
+  :global(.mobile-app-bar) {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: var(--app-z-app-bar);
   }
 
   .main-content {
@@ -207,6 +219,7 @@
     flex-direction: column;
     min-width: 0;
     min-height: 0;
+    background: var(--mdc-theme-surface, #fff);
   }
 
   .loading-state,
@@ -216,132 +229,67 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+    gap: var(--app-spacing-2);
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    opacity: 0.4;
+    margin-bottom: var(--app-spacing-2);
   }
 
   .empty-state p {
-    margin: 0.25rem 0;
+    margin: var(--app-spacing-1) 0;
+  }
+
+  .empty-state .hint {
+    font-size: var(--app-font-size-sm);
   }
 
   .settings-panel {
     flex: 1;
-    padding: 1.5rem;
+    padding: var(--app-spacing-6);
     overflow-y: auto;
-    background: var(--bg-primary);
   }
 
   @media (max-width: 768px) {
     .settings-panel {
-      padding: 1rem;
+      padding: var(--app-spacing-4);
     }
   }
 
-  /* Floating Action Button */
-  .fab {
-    position: fixed;
-    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0));
-    right: 1.5rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    z-index: 100;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .fab:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  }
-
-  .fab:active {
-    transform: scale(0.95);
-  }
-
-  .fab svg {
-    width: 24px;
-    height: 24px;
-  }
-
-  /* Mobile form modal */
-  .form-modal-backdrop {
+  /* Backdrop for mobile sidebar */
+  .backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 200;
-    display: flex;
-    align-items: flex-end;
-    animation: fadeIn 0.2s ease;
+    background: var(--app-color-backdrop);
+    z-index: var(--app-z-backdrop);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--app-transition-slow);
   }
 
-  .form-modal {
-    width: 100%;
-    background: var(--bg-primary);
-    border-radius: 16px 16px 0 0;
-    animation: slideUp 0.3s ease;
-    max-height: 90vh;
-    overflow-y: auto;
+  .backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
   }
 
-  .form-modal-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--border-color);
-    border-radius: 2px;
-    margin: 8px auto;
+  /* FAB positioning */
+  :global(.add-task-fab) {
+    position: fixed !important;
+    bottom: calc(var(--app-spacing-6) + env(safe-area-inset-bottom, 0));
+    right: var(--app-spacing-6);
+    z-index: var(--app-z-app-bar);
   }
 
-  .form-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 1rem 0.5rem;
-    font-weight: 600;
+  /* Dialog content adjustments */
+  :global(.mdc-dialog .task-form) {
+    padding: 0;
   }
 
-  .form-modal-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    border-radius: 50%;
-  }
-
-  .form-modal-close:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .form-modal-close svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  /* Remove TaskForm border when in modal */
-  .form-modal :global(.task-form) {
-    border-top: none;
-    padding-top: 0;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+  :global(.mdc-dialog .form-actions) {
+    padding-top: var(--app-spacing-4);
+    padding-bottom: 0;
   }
 </style>

@@ -3,6 +3,9 @@
   import { listStore } from "$lib/stores/lists.svelte";
   import { taskStore } from "$lib/stores/tasks.svelte";
   import type { Task } from "$lib/types";
+  import Textfield from '@smui/textfield';
+  import Select, { Option } from '@smui/select';
+  import Button from '@smui/button';
 
   interface Props {
     task?: Task | null;
@@ -18,6 +21,13 @@
     { value: "FREQ=WEEKLY", label: "Weekly" },
     { value: "FREQ=MONTHLY", label: "Monthly" },
     { value: "FREQ=YEARLY", label: "Yearly" },
+  ];
+
+  const PRIORITY_OPTIONS = [
+    { value: "", label: "None" },
+    { value: "1", label: "High" },
+    { value: "5", label: "Medium" },
+    { value: "9", label: "Low" },
   ];
 
   // Form state - initialized from props (untrack captures initial value only)
@@ -84,51 +94,62 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <form class="task-form" onsubmit={handleSubmit}>
-  <input
-    type="text"
-    class="title-input"
+  <Textfield
+    variant="outlined"
     bind:value={title}
-    placeholder="Task title..."
+    label="Task title"
     disabled={saving}
-    autofocus
+    style="width: 100%;"
   />
 
-  <textarea
-    class="description-input"
+  <Textfield
+    variant="outlined"
+    textarea
     bind:value={description}
-    placeholder="Description (optional)"
-    rows="2"
+    label="Description (optional)"
     disabled={saving}
-  ></textarea>
+    style="width: 100%;"
+  />
 
   <div class="form-row">
-    <label class="form-field">
-      <span>Due date</span>
-      <input type="date" bind:value={dueDate} disabled={saving} />
-    </label>
+    <div class="form-field">
+      <Textfield
+        variant="outlined"
+        type="date"
+        bind:value={dueDate}
+        label="Due date"
+        disabled={saving}
+        style="width: 100%;"
+      />
+    </div>
 
-    <label class="form-field">
-      <span>Repeat</span>
-      <select
+    <div class="form-field">
+      <Select
+        variant="outlined"
         bind:value={rrule}
+        label="Repeat"
         disabled={saving || !dueDate}
-        title={!dueDate ? "Set a due date first" : ""}
+        style="width: 100%;"
       >
         {#each RECURRENCE_OPTIONS as opt}
-          <option value={opt.value}>{opt.label}</option>
+          <Option value={opt.value}>{opt.label}</Option>
         {/each}
-      </select>
-    </label>
+      </Select>
+    </div>
 
-    <label class="form-field">
-      <span>Priority</span>
-      <div class="priority-select-wrapper">
-        <select bind:value={priority} disabled={saving} class="priority-select">
-          <option value="">None</option>
-          <option value="1">High</option>
-          <option value="5">Medium</option>
-          <option value="9">Low</option>
-        </select>
+    <div class="form-field">
+      <div class="priority-wrapper">
+        <Select
+          variant="outlined"
+          bind:value={priority}
+          label="Priority"
+          disabled={saving}
+          style="width: 100%;"
+        >
+          {#each PRIORITY_OPTIONS as opt}
+            <Option value={opt.value}>{opt.label}</Option>
+          {/each}
+        </Select>
         {#if priority}
           <span
             class="priority-indicator priority-{priority === '1'
@@ -139,176 +160,83 @@
           ></span>
         {/if}
       </div>
-    </label>
+    </div>
   </div>
 
   <div class="form-actions">
     {#if isEditing}
-      <button type="button" onclick={onClose} disabled={saving}>Cancel</button>
+      <Button variant="text" onclick={onClose} disabled={saving}>
+        Cancel
+      </Button>
     {/if}
-    <button type="submit" class="primary" disabled={!title.trim() || saving}>
+    <Button variant="raised" type="submit" disabled={!title.trim() || saving}>
       {saving ? "Saving..." : isEditing ? "Save" : "Add Task"}
-    </button>
+    </Button>
   </div>
 </form>
 
 <style>
   .task-form {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--border-color);
-    background: var(--bg-secondary);
+    padding: var(--app-spacing-6);
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .title-input {
-    font-size: 1rem;
-    padding: 0.625rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    background: var(--bg-primary);
-  }
-
-  .title-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-  }
-
-  .description-input {
-    font-size: 0.875rem;
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    resize: vertical;
-    font-family: inherit;
-    background: var(--bg-primary);
-  }
-
-  .description-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
+    gap: var(--app-spacing-4);
   }
 
   .form-row {
     display: flex;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
     flex: 1;
+    min-width: 0;
   }
 
-  .form-field span {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-
-  .form-field input,
-  .form-field select {
-    padding: 0.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 0.875rem;
-    background: var(--bg-primary);
-  }
-
-  .priority-select-wrapper {
+  .priority-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .priority-select {
-    flex: 1;
-    padding-right: 2rem;
   }
 
   .priority-indicator {
     position: absolute;
-    right: 1.75rem;
-    width: 8px;
-    height: 8px;
+    right: 2.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     pointer-events: none;
   }
 
   .priority-indicator.priority-high {
-    background: var(--priority-high-text);
+    background: var(--app-color-priority-high);
   }
 
   .priority-indicator.priority-medium {
-    background: var(--priority-medium-text);
+    background: var(--app-color-priority-medium);
   }
 
   .priority-indicator.priority-low {
-    background: var(--priority-low-text);
+    background: var(--app-color-priority-low);
   }
 
   .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
-  }
-
-  .form-actions button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-  }
-
-  .form-actions button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .form-actions button.primary {
-    background: var(--accent-color);
-    color: white;
-  }
-
-  .form-actions button:not(.primary) {
-    background: transparent;
-  }
-
-  .form-actions button:not(.primary):hover {
-    background: var(--bg-hover);
+    gap: var(--app-spacing-2);
+    padding-top: var(--app-spacing-2);
   }
 
   /* Mobile adjustments */
   @media (max-width: 768px) {
     .task-form {
-      padding: 1rem;
-      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+      padding: var(--app-spacing-4);
+      padding-bottom: calc(var(--app-spacing-4) + env(safe-area-inset-bottom, 0));
     }
 
     .form-row {
       flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .form-field input,
-    .form-field select {
-      padding: 0.75rem;
-      font-size: 1rem;
-      min-height: 44px;
-    }
-
-    .title-input {
-      padding: 0.75rem;
-      font-size: 1rem;
-      min-height: 44px;
-    }
-
-    .form-actions button {
-      padding: 0.75rem 1.25rem;
-      min-height: 44px;
+      gap: var(--app-spacing-4);
     }
   }
 </style>

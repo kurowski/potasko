@@ -1,0 +1,25 @@
+@use 'sass:color';
+
+@use '@material/theme/color-palette';
+
+// Potasko Dark Theme
+@use '@material/theme/index' as theme with (
+  $primary: #60a5fa,
+  $secondary: #818cf8,
+  $surface: #1f2937,
+  $background: #111827,
+  $error: #f87171
+);
+
+html,
+body {
+  background-color: theme.$background;
+  color: theme.$on-surface;
+}
+
+a {
+  color: theme.$primary;
+}
+a:visited {
+  color: color.scale(#60a5fa, $lightness: -25%);
+}

@@ -5,6 +5,10 @@
   import AccountForm from './AccountForm.svelte';
   import SyncLogModal from './SyncLogModal.svelte';
   import type { Account } from '$lib/types';
+  import Button from '@smui/button';
+  import IconButton from '@smui/icon-button';
+  import CircularProgress from '@smui/circular-progress';
+  import Card from '@smui/card';
 
   // UI state
   let showAddForm = $state(false);
@@ -88,100 +92,100 @@
 <div class="account-list">
   <div class="header">
     <h2>CalDAV Accounts</h2>
-    <button class="add-btn" onclick={handleAddClick}>
-      <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-      </svg>
+    <Button variant="raised" onclick={handleAddClick}>
+      <span class="material-icons" style="font-size: 18px; margin-right: 8px;">add</span>
       Add Account
-    </button>
+    </Button>
   </div>
 
   {#if accountStore.loading}
-    <p class="loading">Loading accounts...</p>
+    <div class="loading">
+      <CircularProgress indeterminate />
+      <p>Loading accounts...</p>
+    </div>
   {:else if accountStore.accounts.length === 0 && !showAddForm}
     <div class="empty-state">
-      <svg viewBox="0 0 24 24" fill="currentColor" class="empty-icon">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-      </svg>
+      <span class="material-icons empty-icon">cloud_off</span>
       <p>No CalDAV accounts configured</p>
       <p class="hint">Add an account to sync tasks with your CalDAV server</p>
     </div>
   {:else}
-    <ul class="accounts">
+    <div class="accounts">
       {#each accountStore.accounts as account (account.id)}
-        <li class="account-item">
-          <div class="account-info">
-            <span class="account-name">{account.name}</span>
-            <span class="account-server">{account.server_url}</span>
-            <span class="account-user">{account.username}</span>
+        <Card class="account-card">
+          <div class="account-item">
+            <div class="account-info">
+              <span class="account-name">{account.name}</span>
+              <span class="account-server">{account.server_url}</span>
+              <span class="account-user">{account.username}</span>
+            </div>
+            <div class="account-actions">
+              <IconButton
+                onclick={() => handleSyncClick(account)}
+                disabled={syncStore.syncing}
+                title="Sync account"
+                aria-label="Sync account"
+              >
+                {#if syncStore.syncing && syncStore.syncingAccountId === account.id}
+                  <CircularProgress style="width: 24px; height: 24px;" indeterminate />
+                {:else}
+                  <span class="material-icons">sync</span>
+                {/if}
+              </IconButton>
+              <IconButton
+                onclick={() => handleEditClick(account)}
+                title="Edit account"
+              >
+                <span class="material-icons">edit</span>
+              </IconButton>
+              <IconButton
+                onclick={() => handleDeleteClick(account)}
+                title="Delete account"
+                class="danger"
+              >
+                <span class="material-icons">delete</span>
+              </IconButton>
+            </div>
           </div>
-          <div class="account-actions">
-            <button
-              class="icon-btn sync-btn"
-              onclick={() => handleSyncClick(account)}
-              disabled={syncStore.syncing}
-              title="Sync account"
-            >
-              {#if syncStore.syncing && syncStore.syncingAccountId === account.id}
-                <svg class="spinning" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-                </svg>
-              {:else}
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
-                </svg>
-              {/if}
-            </button>
-            <button
-              class="icon-btn"
-              onclick={() => handleEditClick(account)}
-              title="Edit account"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-              </svg>
-            </button>
-            <button
-              class="icon-btn danger"
-              onclick={() => handleDeleteClick(account)}
-              title="Delete account"
-            >
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-              </svg>
-            </button>
-          </div>
-        </li>
+        </Card>
       {/each}
-    </ul>
+    </div>
 
     {#if syncStore.lastResult}
       <div class="sync-result" class:success={syncStore.lastResult.success} class:error={!syncStore.lastResult.success}>
         {#if syncStore.lastResult.success}
-          <span class="sync-result-icon">✓</span>
+          <span class="material-icons">check_circle</span>
           <span>{formatSyncResult()}</span>
         {:else}
-          <span class="sync-result-icon">✗</span>
+          <span class="material-icons">error</span>
           <span>{syncStore.lastResult.error || 'Sync failed'}</span>
         {/if}
       </div>
     {/if}
 
-    <button class="view-log-btn" onclick={() => showSyncLog = true}>
+    <Button variant="outlined" onclick={() => showSyncLog = true} style="width: 100%; margin-top: 1rem;">
+      <span class="material-icons" style="font-size: 18px; margin-right: 8px;">history</span>
       View Sync Log
-    </button>
+    </Button>
   {/if}
 
   {#if showAddForm}
-    <AccountForm onClose={handleFormClose} onSaved={handleFormSaved} />
+    <Card class="form-card">
+      <AccountForm onClose={handleFormClose} onSaved={handleFormSaved} />
+    </Card>
   {/if}
 
   {#if editingAccount}
-    <AccountForm account={editingAccount} onClose={handleFormClose} onSaved={handleFormSaved} />
+    <Card class="form-card">
+      <AccountForm account={editingAccount} onClose={handleFormClose} onSaved={handleFormSaved} />
+    </Card>
   {/if}
 
   {#if accountStore.error && !showAddForm && !editingAccount}
-    <p class="error">{accountStore.error}</p>
+    <div class="error-message">
+      <span class="material-icons">error</span>
+      {accountStore.error}
+    </div>
   {/if}
 
   {#if showSyncLog}
@@ -193,106 +197,91 @@
   .account-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
   }
 
   .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: var(--app-spacing-4);
   }
 
   .header h2 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-
-  .add-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-lg);
     font-weight: 500;
   }
 
-  .add-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .add-btn:hover {
-    opacity: 0.9;
-  }
-
   .loading {
-    color: var(--text-secondary);
-    text-align: center;
     padding: 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--app-spacing-4);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+  }
+
+  .loading p {
+    margin: 0;
   }
 
   .empty-state {
     text-align: center;
     padding: 3rem 2rem;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .empty-icon {
-    width: 48px;
-    height: 48px;
+    font-size: 48px;
     opacity: 0.5;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   .empty-state p {
-    margin: 0.25rem 0;
+    margin: var(--app-spacing-1) 0;
   }
 
   .empty-state .hint {
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
     opacity: 0.8;
   }
 
   .accounts {
-    list-style: none;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--app-spacing-3);
+  }
+
+  :global(.account-card) {
+    padding: 0 !important;
   }
 
   .account-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
+    padding: var(--app-spacing-4);
+    gap: var(--app-spacing-4);
   }
 
   .account-info {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--app-spacing-1);
     min-width: 0;
   }
 
   .account-name {
     font-weight: 500;
-    font-size: 1rem;
+    font-size: var(--app-font-size-base);
   }
 
   .account-server {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: var(--app-font-size-sm);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -300,110 +289,59 @@
 
   .account-user {
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     opacity: 0.8;
   }
 
   .account-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--app-spacing-1);
     flex-shrink: 0;
   }
 
-  .icon-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary);
-  }
-
-  .icon-btn svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .icon-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .icon-btn.danger:hover {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
-  }
-
-  .icon-btn.sync-btn {
-    color: var(--accent-color);
-  }
-
-  .icon-btn.sync-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .spinning {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  :global(.danger .material-icons) {
+    color: var(--mdc-theme-error, #dc2626);
   }
 
   .sync-result {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    margin-top: 0.5rem;
+    gap: var(--app-spacing-2);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    border-radius: var(--app-radius-md);
+    font-size: var(--app-font-size-sm);
   }
 
   .sync-result.success {
-    background: var(--priority-low-bg);
-    color: var(--priority-low-text);
+    background: var(--app-color-status-success-bg);
+    color: var(--app-color-status-success-text);
   }
 
   .sync-result.error {
-    background: var(--priority-high-bg);
-    color: var(--priority-high-text);
+    background: var(--app-color-status-error-bg);
+    color: var(--app-color-status-error-text);
   }
 
-  .sync-result-icon {
-    font-weight: bold;
+  .sync-result .material-icons {
+    font-size: 20px;
   }
 
-  .error {
-    color: var(--error-color);
-    font-size: 0.875rem;
-    padding: 0.75rem;
-    background: var(--priority-high-bg);
-    border-radius: 6px;
-    margin: 0;
+  :global(.form-card) {
+    margin-top: var(--app-spacing-4);
   }
 
-  .view-log-btn {
-    display: block;
-    width: 100%;
-    padding: 0.5rem;
-    margin-top: 0.75rem;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: var(--app-spacing-2);
+    color: var(--app-color-status-error-text);
+    font-size: var(--app-font-size-sm);
+    padding: var(--app-spacing-3) var(--app-spacing-4);
+    background: var(--app-color-status-error-bg);
+    border-radius: var(--app-radius-md);
   }
 
-  .view-log-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
+  .error-message .material-icons {
+    font-size: 20px;
   }
 </style>

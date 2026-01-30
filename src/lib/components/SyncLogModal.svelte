@@ -1,6 +1,10 @@
 <script lang="ts">
   import { getSyncLog } from '$lib/api';
   import type { SyncLogEntry } from '$lib/types';
+  import Dialog, { Title, Content, Actions } from '@smui/dialog';
+  import Button from '@smui/button';
+  import DataTable, { Head, Body, Row, Cell } from '@smui/data-table';
+  import CircularProgress from '@smui/circular-progress';
 
   interface Props {
     onClose: () => void;
@@ -13,6 +17,7 @@
   let error = $state<string | null>(null);
   let offset = $state(0);
   let hasMore = $state(true);
+  let open = $state(true);
 
   const PAGE_SIZE = 50;
 
@@ -42,16 +47,9 @@
     loadEntries();
   });
 
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      onClose();
-    }
+  function handleClose() {
+    open = false;
+    onClose();
   }
 
   function formatTimestamp(ts: string): string {
@@ -88,250 +86,178 @@
   }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<Dialog
+  bind:open
+  aria-labelledby="sync-log-dialog-title"
+  aria-describedby="sync-log-dialog-content"
+  surface$style="max-width: 700px; width: 90vw;"
+  fullscreen
+>
+  <Title id="sync-log-dialog-title">Sync Log</Title>
+  <Content id="sync-log-dialog-content">
+    {#if loading && entries.length === 0}
+      <div class="loading">
+        <CircularProgress indeterminate />
+        <p>Loading sync log...</p>
+      </div>
+    {:else if error}
+      <div class="error-message">
+        <span class="material-icons">error</span>
+        {error}
+      </div>
+    {:else if entries.length === 0}
+      <div class="empty-state">
+        <span class="material-icons">history</span>
+        <p>No sync operations logged yet.</p>
+      </div>
+    {:else}
+      <div class="table-wrapper">
+        <DataTable style="width: 100%;">
+          <Head>
+            <Row>
+              <Cell>Time</Cell>
+              <Cell>Operation</Cell>
+              <Cell>Status</Cell>
+              <Cell>Details</Cell>
+            </Row>
+          </Head>
+          <Body>
+            {#each entries as entry (entry.id)}
+              <Row>
+                <Cell class="timestamp-cell">{formatTimestamp(entry.timestamp)}</Cell>
+                <Cell>{getOperationLabel(entry.operation)}</Cell>
+                <Cell>
+                  <span class="status {getStatusClass(entry.status)}">{entry.status}</span>
+                </Cell>
+                <Cell class="details-cell">
+                  {#if entry.message}
+                    <span class="message">{entry.message}</span>
+                  {/if}
+                  {#if entry.list_id || entry.task_id || entry.http_status}
+                    <span class="meta">
+                      {#if entry.list_id}List: {entry.list_id}{/if}
+                      {#if entry.task_id}{entry.list_id ? ' · ' : ''}Task: {entry.task_id}{/if}
+                      {#if entry.http_status}{(entry.list_id || entry.task_id) ? ' · ' : ''}HTTP: {entry.http_status}{/if}
+                    </span>
+                  {/if}
+                </Cell>
+              </Row>
+            {/each}
+          </Body>
+        </DataTable>
+      </div>
 
-<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={handleBackdropClick}>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal-header">
-      <h2 id="modal-title">Sync Log</h2>
-      <button class="close-btn" onclick={onClose} aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="modal-body">
-      {#if loading && entries.length === 0}
-        <p class="loading">Loading sync log...</p>
-      {:else if error}
-        <p class="error">{error}</p>
-      {:else if entries.length === 0}
-        <p class="empty">No sync operations logged yet.</p>
-      {:else}
-        <div class="table-wrapper">
-          <table class="log-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Operation</th>
-                <th>Status</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each entries as entry (entry.id)}
-                <tr>
-                  <td class="timestamp">{formatTimestamp(entry.timestamp)}</td>
-                  <td>{getOperationLabel(entry.operation)}</td>
-                  <td><span class="status {getStatusClass(entry.status)}">{entry.status}</span></td>
-                  <td class="details">
-                    {#if entry.message}
-                      <span class="message">{entry.message}</span>
-                    {/if}
-                    {#if entry.list_id || entry.task_id || entry.http_status}
-                      <span class="meta">
-                        {#if entry.list_id}List: {entry.list_id}{/if}
-                        {#if entry.task_id}{entry.list_id ? ' · ' : ''}Task: {entry.task_id}{/if}
-                        {#if entry.http_status}{(entry.list_id || entry.task_id) ? ' · ' : ''}HTTP: {entry.http_status}{/if}
-                      </span>
-                    {/if}
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-
-        {#if hasMore}
-          <button
-            class="load-more-btn"
-            onclick={() => loadEntries(true)}
-            disabled={loading}
-          >
+      {#if hasMore}
+        <div class="load-more">
+          <Button variant="text" onclick={() => loadEntries(true)} disabled={loading}>
             {loading ? 'Loading...' : 'Load More'}
-          </button>
-        {/if}
+          </Button>
+        </div>
       {/if}
-    </div>
-  </div>
-</div>
+    {/if}
+  </Content>
+  <Actions>
+    <Button onclick={handleClose}>Close</Button>
+  </Actions>
+</Dialog>
 
 <style>
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-
-  .modal {
-    background: var(--bg-primary);
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
+  .loading {
     display: flex;
     flex-direction: column;
-  }
-
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
+    gap: var(--app-spacing-4);
+    padding: 2rem;
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
-  .modal-header h2 {
+  .loading p {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
   }
 
-  .close-btn {
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    border-radius: 6px;
+  .error-message {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
-  }
-
-  .close-btn svg {
-    width: 20px;
-    height: 20px;
-  }
-
-  .close-btn:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-  }
-
-  .modal-body {
-    padding: 1rem 1.5rem;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .loading,
-  .empty,
-  .error {
-    text-align: center;
+    gap: var(--app-spacing-2);
     padding: 2rem;
-    color: var(--text-secondary);
+    color: var(--mdc-theme-error, #dc2626);
   }
 
-  .error {
-    color: var(--error-color, #ef4444);
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--app-spacing-2);
+    padding: 2rem;
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+  }
+
+  .empty-state .material-icons {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+
+  .empty-state p {
+    margin: 0;
   }
 
   .table-wrapper {
     overflow-x: auto;
   }
 
-  .log-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8125rem;
-  }
-
-  .log-table th,
-  .log-table td {
-    padding: 0.5rem 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .log-table th {
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    background: var(--bg-secondary);
-    position: sticky;
-    top: 0;
-  }
-
-  .log-table tbody tr:hover {
-    background: var(--bg-hover);
-  }
-
-  .timestamp {
+  :global(.timestamp-cell) {
     white-space: nowrap;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
+    font-size: var(--app-font-size-xs);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .status {
-    font-size: 0.6875rem;
-    padding: 0.125rem 0.5rem;
-    border-radius: 4px;
+    font-size: var(--app-font-size-2xs);
+    padding: 0.125rem var(--app-spacing-2);
+    border-radius: var(--app-radius-sm);
     text-transform: uppercase;
     font-weight: 500;
     white-space: nowrap;
   }
 
   .status-success {
-    background: var(--priority-low-bg, #dcfce7);
-    color: var(--priority-low-text, #166534);
+    background: var(--app-color-status-success-bg);
+    color: var(--app-color-status-success-text);
   }
 
   .status-error {
-    background: var(--priority-high-bg, #fee2e2);
-    color: var(--priority-high-text, #991b1b);
+    background: var(--app-color-status-error-bg);
+    color: var(--app-color-status-error-text);
   }
 
   .status-conflict {
-    background: var(--priority-medium-bg, #fef3c7);
-    color: var(--priority-medium-text, #92400e);
+    background: var(--app-color-status-warning-bg);
+    color: var(--app-color-status-warning-text);
   }
 
-  .details {
+  :global(.details-cell) {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--app-spacing-1);
+    max-width: 300px;
   }
 
   .message {
-    color: var(--text-secondary);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     word-break: break-word;
+    font-size: 0.8125rem;
   }
 
   .meta {
-    font-size: 0.6875rem;
-    color: var(--text-secondary);
+    font-size: var(--app-font-size-2xs);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
     opacity: 0.8;
   }
 
-  .load-more-btn {
-    display: block;
-    width: 100%;
-    padding: 0.75rem;
-    margin-top: 1rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-primary);
-  }
-
-  .load-more-btn:hover:not(:disabled) {
-    background: var(--bg-hover);
-  }
-
-  .load-more-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .load-more {
+    display: flex;
+    justify-content: center;
+    padding: var(--app-spacing-4) 0;
   }
 </style>

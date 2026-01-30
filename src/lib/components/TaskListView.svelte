@@ -4,12 +4,15 @@
   import { listStore } from '$lib/stores/lists.svelte';
   import TaskItem from './TaskItem.svelte';
   import SyncStatus from './SyncStatus.svelte';
+  import Button from '@smui/button';
+  import CircularProgress from '@smui/circular-progress';
 
   interface Props {
     onEditTask?: (task: Task) => void;
+    onAddTask?: () => void;
   }
 
-  let { onEditTask }: Props = $props();
+  let { onEditTask, onAddTask }: Props = $props();
 
   // Separate completed and incomplete tasks
   const incompleteTasks = $derived(taskStore.tasks.filter(t => !t.completed));
@@ -33,29 +36,49 @@
   const syncListId = $derived(
     listStore.selectedView?.type === 'list' ? listStore.selectedList?.id : null
   );
+
+  // Show add button only for list views (not special views)
+  const canAddTask = $derived(listStore.selectedView?.type === 'list');
 </script>
 
 <div class="task-list-view">
   <header class="list-header">
     <div class="header-top">
       <h1>{viewTitle()}</h1>
-      {#if syncListId}
-        <SyncStatus listId={syncListId} />
-      {/if}
+      <div class="header-actions">
+        {#if canAddTask}
+          <Button variant="raised" onclick={onAddTask}>
+            <span class="material-icons" style="font-size: 18px; margin-right: 4px;">add</span>
+            Add Task
+          </Button>
+        {/if}
+        {#if syncListId}
+          <SyncStatus listId={syncListId} />
+        {/if}
+      </div>
     </div>
     <span class="task-count">{incompleteTasks.length} tasks</span>
   </header>
 
   {#if taskStore.loading}
-    <div class="loading">Loading tasks...</div>
+    <div class="loading">
+      <CircularProgress indeterminate />
+      <p>Loading tasks...</p>
+    </div>
   {:else if taskStore.error}
-    <div class="error">{taskStore.error}</div>
+    <div class="error">
+      <span class="material-icons">error</span>
+      {taskStore.error}
+    </div>
   {:else}
     <div class="tasks-container">
       {#if incompleteTasks.length === 0 && completedTasks.length === 0}
         <div class="empty-state">
+          <span class="material-icons empty-icon">task_alt</span>
           <p>No tasks yet</p>
-          <p class="hint">Add a task to get started</p>
+          {#if canAddTask}
+            <p class="hint">Click "Add Task" to get started</p>
+          {/if}
         </div>
       {:else}
         <div class="task-section">
@@ -66,7 +89,10 @@
 
         {#if !hideCompletedSection && completedTasks.length > 0}
           <details class="completed-section">
-            <summary>Completed ({completedTasks.length})</summary>
+            <summary>
+              <span class="material-icons expand-icon">expand_more</span>
+              Completed ({completedTasks.length})
+            </summary>
             <div class="task-section">
               {#each completedTasks as task (task.id)}
                 <TaskItem {task} onEdit={onEditTask} />
@@ -90,32 +116,39 @@
   }
 
   .list-header {
-    padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--app-spacing-6) var(--app-spacing-6) var(--app-spacing-4);
+    border-bottom: 1px solid var(--app-color-border);
   }
 
   .header-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: var(--app-spacing-4);
+    flex-wrap: wrap;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--app-spacing-3);
   }
 
   .list-header h1 {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
+    font-size: var(--app-font-size-xl);
+    font-weight: 500;
   }
 
   .task-count {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: var(--app-font-size-sm);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .tasks-container {
     flex: 1;
     overflow-y: auto;
-    padding: 1rem 1.5rem;
+    padding: var(--app-spacing-4) var(--app-spacing-6);
   }
 
   .task-section {
@@ -124,44 +157,80 @@
   }
 
   .completed-section {
-    margin-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
+    margin-top: var(--app-spacing-6);
+    border-top: 1px solid var(--app-color-border);
+    padding-top: var(--app-spacing-4);
   }
 
   .completed-section summary {
     cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    padding: 0.5rem 0;
+    font-size: var(--app-font-size-sm);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+    padding: var(--app-spacing-2) 0;
     user-select: none;
+    display: flex;
+    align-items: center;
+    gap: var(--app-spacing-1);
   }
 
   .completed-section summary:hover {
-    color: var(--text-primary);
+    color: var(--mdc-theme-on-surface, #000);
   }
 
-  .loading,
-  .error,
-  .empty-state {
-    padding: 2rem;
+  .expand-icon {
+    font-size: 20px;
+    transition: transform 0.2s;
+  }
+
+  .completed-section[open] .expand-icon {
+    transform: rotate(180deg);
+  }
+
+  .completed-section summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .loading {
+    padding: 3rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--app-spacing-4);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+  }
+
+  .loading p {
+    margin: 0;
   }
 
   .error {
-    color: var(--error-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--app-spacing-2);
+    padding: 2rem;
+    color: var(--mdc-theme-error, #dc2626);
   }
 
   .empty-state {
-    color: var(--text-secondary);
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    opacity: 0.5;
+    margin-bottom: var(--app-spacing-2);
   }
 
   .empty-state p {
-    margin: 0.25rem 0;
+    margin: var(--app-spacing-1) 0;
   }
 
   .empty-state .hint {
-    font-size: 0.875rem;
+    font-size: var(--app-font-size-sm);
   }
 
   /* Mobile adjustments */
@@ -171,8 +240,8 @@
     }
 
     .tasks-container {
-      padding: 0.75rem 1rem;
-      padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+      padding: var(--app-spacing-3) var(--app-spacing-4);
+      padding-bottom: env(safe-area-inset-bottom, var(--app-spacing-3));
     }
   }
 </style>

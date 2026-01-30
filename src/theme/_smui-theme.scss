@@ -1,0 +1,25 @@
+@use 'sass:color';
+
+@use '@material/theme/color-palette';
+
+// Potasko Light Theme
+@use '@material/theme/index' as theme with (
+  $primary: #3b82f6,
+  $secondary: #6366f1,
+  $surface: #fff,
+  $background: #f9fafb,
+  $error: #dc2626
+);
+
+html,
+body {
+  background-color: theme.$background;
+  color: theme.$on-surface;
+}
+
+a {
+  color: theme.$primary;
+}
+a:visited {
+  color: color.scale(#3b82f6, $lightness: -25%);
+}

@@ -1,63 +1,89 @@
-/* Global styles for Potasko */
+/* Potasko - Minimal custom styles (SMUI handles most styling) */
 
+/* === CSS Custom Properties (Theme Variables) === */
 :root {
-  /* Responsive breakpoints */
-  --mobile-breakpoint: 768px;
-  --touch-target-min: 44px;
+  /* === COLORS === */
 
-  /* Colors - Light mode */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --bg-hover: #f3f4f6;
-  --bg-selected: #e5e7eb;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --accent-color: #3b82f6;
-  --error-color: #dc2626;
+  /* Priority badges */
+  --app-color-priority-high-bg: #fecaca;
+  --app-color-priority-high-text: #991b1b;
+  --app-color-priority-medium-bg: #fef3c7;
+  --app-color-priority-medium-text: #92400e;
+  --app-color-priority-low-bg: #dbeafe;
+  --app-color-priority-low-text: #1e40af;
 
-  /* Priority colors - Light mode */
-  --priority-high-bg: #fee2e2;
-  --priority-high-text: #dc2626;
-  --priority-medium-bg: #fef3c7;
-  --priority-medium-text: #d97706;
-  --priority-low-bg: #dbeafe;
-  --priority-low-text: #2563eb;
+  /* Priority indicator dots (solid) */
+  --app-color-priority-high: #dc2626;
+  --app-color-priority-medium: #f59e0b;
+  --app-color-priority-low: #3b82f6;
 
-  /* Typography */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
+  /* Status feedback */
+  --app-color-status-success-bg: #dcfce7;
+  --app-color-status-success-text: #166534;
+  --app-color-status-error-bg: #fee2e2;
+  --app-color-status-error-text: #991b1b;
+  --app-color-status-warning-bg: #fef3c7;
+  --app-color-status-warning-text: #92400e;
 
-  /* Rendering */
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Borders and surfaces */
+  --app-color-border: rgba(0, 0, 0, 0.12);
+  --app-color-backdrop: rgba(0, 0, 0, 0.5);
+  --app-color-surface-hover: rgba(0, 0, 0, 0.04);
+
+  /* === TYPOGRAPHY === */
+  --app-font-size-2xs: 0.6875rem;   /* 11px */
+  --app-font-size-xs: 0.75rem;      /* 12px */
+  --app-font-size-sm: 0.875rem;     /* 14px */
+  --app-font-size-base: 1rem;       /* 16px */
+  --app-font-size-lg: 1.25rem;      /* 20px */
+  --app-font-size-xl: 1.5rem;       /* 24px */
+
+  /* === SPACING === */
+  --app-spacing-1: 0.25rem;   /* 4px */
+  --app-spacing-2: 0.5rem;    /* 8px */
+  --app-spacing-3: 0.75rem;   /* 12px */
+  --app-spacing-4: 1rem;      /* 16px */
+  --app-spacing-6: 1.5rem;    /* 24px */
+
+  /* === BORDER RADIUS === */
+  --app-radius-sm: 4px;
+  --app-radius-md: 8px;
+  --app-radius-lg: 12px;
+
+  /* === TRANSITIONS === */
+  --app-transition-fast: 0.1s ease;
+  --app-transition-normal: 0.15s ease;
+  --app-transition-slow: 0.3s ease;
+
+  /* === Z-INDEX === */
+  --app-z-app-bar: 50;
+  --app-z-backdrop: 99;
+  --app-z-drawer: 100;
+
+  /* === SHADOWS === */
+  --app-shadow-drawer: 0 8px 10px -5px rgba(0, 0, 0, 0.2),
+                       0 16px 24px 2px rgba(0, 0, 0, 0.14),
+                       0 6px 30px 5px rgba(0, 0, 0, 0.12);
 }
 
-/* Dark mode */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #1f2937;
-    --bg-secondary: #111827;
-    --bg-hover: #374151;
-    --bg-selected: #4b5563;
-    --text-primary: #f9fafb;
-    --text-secondary: #9ca3af;
-    --border-color: #374151;
-    --accent-color: #60a5fa;
-    --error-color: #f87171;
+    --app-color-priority-high-bg: #7f1d1d;
+    --app-color-priority-high-text: #fecaca;
+    --app-color-priority-medium-bg: #78350f;
+    --app-color-priority-medium-text: #fef3c7;
+    --app-color-priority-low-bg: #1e3a8a;
+    --app-color-priority-low-text: #dbeafe;
 
-    /* Priority colors - Dark mode */
-    --priority-high-bg: #7f1d1d;
-    --priority-high-text: #fca5a5;
-    --priority-medium-bg: #78350f;
-    --priority-medium-text: #fcd34d;
-    --priority-low-bg: #1e3a5f;
-    --priority-low-text: #93c5fd;
+    --app-color-status-success-bg: #14532d;
+    --app-color-status-success-text: #bbf7d0;
+    --app-color-status-error-bg: #7f1d1d;
+    --app-color-status-error-text: #fecaca;
+    --app-color-status-warning-bg: #78350f;
+    --app-color-status-warning-text: #fef3c7;
+
+    --app-color-border: rgba(255, 255, 255, 0.12);
+    --app-color-surface-hover: rgba(255, 255, 255, 0.04);
   }
 }
 
@@ -72,88 +98,45 @@
 
 html, body {
   height: 100%;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 body {
   overflow: hidden;
 }
 
-/* Mobile drawer backdrop */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 99;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.backdrop.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* Mobile header */
-.mobile-header {
-  display: none;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.mobile-header h1 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.hamburger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--touch-target-min);
-  height: var(--touch-target-min);
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-  border-radius: 8px;
-}
-
-.hamburger-btn:hover {
-  background: var(--bg-hover);
-}
-
-.hamburger-btn svg {
-  width: 24px;
-  height: 24px;
-}
-
-@media (max-width: 768px) {
-  .mobile-header {
-    display: flex;
+/* Safe area handling for mobile devices with notches */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
 
-  /* Safe area padding for mobile devices */
   .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
-/* Focus styles */
-:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
+/* Priority chip colors (custom - not part of SMUI) */
+.priority-high {
+  background: var(--app-color-priority-high-bg) !important;
+  color: var(--app-color-priority-high-text) !important;
 }
+
+.priority-medium {
+  background: var(--app-color-priority-medium-bg) !important;
+  color: var(--app-color-priority-medium-text) !important;
+}
+
+.priority-low {
+  background: var(--app-color-priority-low-bg) !important;
+  color: var(--app-color-priority-low-text) !important;
+}
+/* No dark mode block needed - variables handle it */
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: var(--app-spacing-2);
+  height: var(--app-spacing-2);
 }
 
 ::-webkit-scrollbar-track {
@@ -161,16 +144,20 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--app-radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.3);
 }
 
-/* Selection */
-::selection {
-  background: var(--accent-color);
-  color: white;
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
 }

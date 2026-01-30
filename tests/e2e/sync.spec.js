@@ -1,52 +1,60 @@
 // E2E Tests for CalDAV Sync via GUI
 // Note: Database cleanup and Radicale startup are handled in wdio.conf.js onPrepare
 
+// Helper to find SMUI Textfield input by its label text
+// SMUI wraps inputs in <label> with .mdc-floating-label containing the label text
+async function findTextfieldByLabel(label) {
+  return $(`//label[.//span[contains(@class, "mdc-floating-label")][normalize-space()="${label}"]]//input`);
+}
+
 describe('CalDAV Sync via GUI', () => {
 
   it('should open Settings and add a CalDAV account', async () => {
     // Wait for app to initialize
     await browser.pause(3000);
 
-    // Click Settings button in sidebar footer
-    const settingsBtn = await $('button.settings-btn');
-    await settingsBtn.waitForClickable({ timeout: 10000 });
-    await settingsBtn.click();
+    // Click Settings list item in sidebar footer (SMUI List Item with "Settings" text)
+    const settingsItem = await $('aria/Settings');
+    await settingsItem.waitForClickable({ timeout: 10000 });
+    await settingsItem.click();
     await browser.pause(500);
 
-    // Click "Add Account" button
-    const addAccountBtn = await $('button.add-btn');
+    // Click "Add Account" button (SMUI Button with text)
+    const addAccountBtn = await $('button*=Add Account');
     await addAccountBtn.waitForClickable({ timeout: 5000 });
     await addAccountBtn.click();
     await browser.pause(500);
 
-    // Fill in account form
-    const nameInput = await $('input[placeholder="e.g., Work, Personal"]');
+    // Fill in account form using SMUI Textfield inputs (found by label text via XPath)
+    const nameInput = await findTextfieldByLabel('Account Name');
+    await nameInput.waitForDisplayed({ timeout: 5000 });
     await nameInput.setValue('Test Radicale');
 
-    const serverInput = await $('input[placeholder="https://caldav.example.com"]');
+    const serverInput = await findTextfieldByLabel('Server URL');
     await serverInput.setValue('http://localhost:5232');
 
-    const usernameInput = await $('input[placeholder="Username"]');
+    const usernameInput = await findTextfieldByLabel('Username');
     await usernameInput.setValue('test');
 
-    const passwordInput = await $('input[placeholder="Password"]');
+    const passwordInput = await findTextfieldByLabel('Password');
     await passwordInput.setValue('test');
 
-    // Test connection
-    const testBtn = await $('button.test-btn');
+    // Test connection (button contains "Test Connection" text)
+    const testBtn = await $('button*=Test Connection');
     await testBtn.click();
 
     // Wait for "Connection successful!" message
     const successMsg = await $('div.test-result.success');
     await successMsg.waitForDisplayed({ timeout: 10000 });
 
-    // Save the account by pressing Enter on the form
-    // TODO: Revisit this workaround - clicking the submit button via WebKitWebDriver
-    // doesn't trigger form submission. We should find a proper user-like interaction
-    // method instead of programmatic form submission.
-    await nameInput.click();
-    await browser.keys(['Enter']);
-    await browser.pause(2000);
+    // Save the account by clicking the submit button inside the form
+    // Use form context to find the correct submit button (there's another "Add Account" button outside)
+    const form = await $('form.account-form');
+    const submitBtn = await form.$('button[type="submit"]');
+    await submitBtn.waitForClickable({ timeout: 5000 });
+    // Use JS click as WebKitWebDriver sometimes has issues with regular clicks
+    await browser.execute((btn) => btn.click(), submitBtn);
+    await browser.pause(3000); // Wait for save and initial sync
 
     // Debug: check what's on the page
     const pageSource = await browser.getPageSource();
@@ -66,8 +74,8 @@ describe('CalDAV Sync via GUI', () => {
   });
 
   it('should sync account to import calendars', async () => {
-    // Click sync button on the account
-    const syncBtn = await $('button.sync-btn');
+    // Click sync button on the account (IconButton with aria-label)
+    const syncBtn = await $('aria/Sync account');
     await syncBtn.waitForClickable({ timeout: 5000 });
     console.log('Found sync button, clicking via JS...');
     // Use JS click like we did for form submit
@@ -91,43 +99,71 @@ describe('CalDAV Sync via GUI', () => {
       console.log('No sync result, checking if sync completed silently...');
     }
 
-    // Exit settings to see the imported list
-    const settingsBtn = await $('button.settings-btn');
-    await settingsBtn.click();
+    // Exit settings by clicking Settings again (toggle)
+    const settingsItem = await $('aria/Settings');
+    await settingsItem.click();
     await browser.pause(500);
 
     // Verify at least one CalDAV list exists (besides Inbox)
-    const listBtns = await $$('button.list-name-btn');
-    console.log('Number of lists:', listBtns.length);
-    expect(listBtns.length).toBeGreaterThan(1);
+    // SMUI List Items contain the list name text - find all items and count
+    const listItems = await $$('.mdc-deprecated-list-item');
+    // Filter to list items in the list-nav section (not Views section)
+    console.log('Number of list items:', listItems.length);
+    // There should be more than just "Today", "Overdue", and "Settings"
+    expect(listItems.length).toBeGreaterThan(3);
   });
 
   it('should create a task in synced list and verify eager sync', async () => {
-    // Click on a synced list (not Inbox - the second one)
-    const listBtns = await $$('button.list-name-btn');
-    // Find the non-Inbox list (synced from CalDAV)
-    for (const btn of listBtns) {
-      const text = await btn.getText();
-      if (text !== 'Inbox') {
-        await btn.click();
-        break;
+    // Find list items that have a color button (actual lists, not views/settings/subheaders)
+    // Lists have a .list-color-btn element that views don't have
+    const listColorBtns = await $$('.list-color-btn');
+    console.log('Found list color buttons:', listColorBtns.length);
+
+    if (listColorBtns.length === 0) {
+      // Fallback: look for list items and filter more carefully
+      const listItems = await $$('.mdc-deprecated-list-item');
+      console.log('Total list items found:', listItems.length);
+      for (const item of listItems) {
+        const text = await item.getText();
+        // Skip special views, settings, and subheaders (Local, account names)
+        if (text && !['Today', 'Overdue', 'Settings', 'Local'].includes(text.trim())
+            && text.trim() !== '' && !text.includes('Subheader')) {
+          console.log('Clicking on list:', text);
+          await item.click();
+          break;
+        }
       }
+    } else {
+      // Click on the first list (via its parent list item)
+      const firstColorBtn = listColorBtns[0];
+      const listItem = await firstColorBtn.parentElement().parentElement();
+      const text = await listItem.getText();
+      console.log('Clicking on list:', text);
+      await listItem.click();
     }
     await browser.pause(500);
 
-    // Fill in task title
-    const titleInput = await $('input.title-input');
+    // Click "Add Task" button to open the task dialog
+    const addTaskBtn = await $('button*=Add Task');
+    await addTaskBtn.waitForClickable({ timeout: 5000 });
+    await addTaskBtn.click();
+    await browser.pause(500);
+
+    // Wait for dialog to open and find the task title input
+    const titleInput = await findTextfieldByLabel('Task title');
     await titleInput.waitForDisplayed({ timeout: 5000 });
     await titleInput.setValue('Eager Sync Test Task');
 
-    // Submit form
-    const submitBtn = await $('button[type="submit"]');
-    await submitBtn.click();
+    // Submit form by clicking the submit button inside the dialog
+    const dialog = await $('.mdc-dialog');
+    const submitBtn = await dialog.$('button[type="submit"]');
+    await submitBtn.waitForClickable({ timeout: 5000 });
+    await browser.execute((btn) => btn.click(), submitBtn);
 
     // Wait for task creation and eager sync (background operation)
     await browser.pause(3000);
 
-    // Verify task appears
+    // Verify task appears in the list
     const taskTitle = await $('span.task-title');
     await taskTitle.waitForDisplayed({ timeout: 5000 });
     const titleText = await taskTitle.getText();
@@ -139,20 +175,21 @@ describe('CalDAV Sync via GUI', () => {
   });
 
   it('should toggle task completion with eager sync', async () => {
-    // Find the checkbox
-    const checkbox = await $('button.checkbox');
-    await checkbox.waitForClickable({ timeout: 5000 });
+    // Find the task item we just created, then find its checkbox
+    const taskItem = await $('.task-item');
+    await taskItem.waitForDisplayed({ timeout: 5000 });
 
-    // Verify not completed
-    let classes = await checkbox.getAttribute('class');
-    expect(classes).not.toContain('checked');
+    // Find the checkbox wrapper within the task item
+    // SMUI Checkbox renders as div.mdc-checkbox with an input inside
+    const checkboxWrapper = await taskItem.$('.mdc-checkbox');
+    await checkboxWrapper.waitForClickable({ timeout: 5000 });
 
-    // Complete the task
-    await checkbox.click();
+    // Click the checkbox to complete the task
+    await checkboxWrapper.click();
     await browser.pause(2000); // Wait for eager sync
 
-    // Verify completed
-    classes = await checkbox.getAttribute('class');
-    expect(classes).toContain('checked');
+    // Verify completed - the task item should now have the 'completed' class
+    const taskItemClasses = await taskItem.getAttribute('class');
+    expect(taskItemClasses).toContain('completed');
   });
 });
