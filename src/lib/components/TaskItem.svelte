@@ -65,6 +65,7 @@
       checked={task.completed}
       onclick={handleToggle}
       touch
+      aria-label={task.completed ? "Mark incomplete" : "Mark complete"}
     />
   </div>
 

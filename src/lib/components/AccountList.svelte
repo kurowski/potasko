@@ -124,6 +124,7 @@
                 onclick={() => handleSyncClick(account)}
                 disabled={syncStore.syncing}
                 title="Sync account"
+                aria-label="Sync account"
               >
                 {#if syncStore.syncing && syncStore.syncingAccountId === account.id}
                   <CircularProgress style="width: 24px; height: 24px;" indeterminate />
