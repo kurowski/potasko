@@ -3,7 +3,7 @@
 ## Overview
 A Tauri 2.0 Linux desktop app for task management with CalDAV sync, designed for future Android compatibility.
 
-**Stack:** Tauri 2.0 (Rust) + SvelteKit + SQLite
+**Stack:** Tauri 2.0 (Rust) + SvelteKit + SMUI (Material Design) + SQLite
 
 ## Features
 - Basic tasks: title, description, due date, priority, completion

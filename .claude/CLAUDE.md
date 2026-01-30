@@ -21,7 +21,7 @@ Skipping step 2 creates "works on my machine" problems for other developers and 
 ## Project Notes
 
 - Package manager: pnpm
-- Styling: Plain CSS (no Tailwind/frameworks)
+- Styling: Svelte Material UI (SMUI)
 - App identifier: `net.kurowski.potasko`
 
 ## Architecture

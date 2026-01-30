@@ -3,7 +3,7 @@
 ## Project Context
 
 - **Discipline**: User wants to review every single step carefully
-- **Styling**: Plain CSS (no Tailwind/frameworks)
+- **Styling**: Svelte Material UI (SMUI) with CSS custom properties
 - **Approach**: Incremental - one step at a time with review between each
 
 ---
@@ -229,7 +229,9 @@ Build minimal functional UI: sidebar with lists, task list view, task form.
 
 ### Styling
 
-Plain CSS with CSS custom properties for theming.
+Svelte Material UI (SMUI) components with CSS custom properties for theming.
+
+**Note:** Originally built with plain CSS, migrated to SMUI in v0.5.0 for a polished Material Design look.
 
 ---
 
