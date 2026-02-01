@@ -179,7 +179,8 @@ dirs = "6.0"
 
 ### Phase 7: Polish
 - [ ] Keyboard shortcuts
-- [ ] Dark mode
+- [x] Dark mode (follows system preference via `prefers-color-scheme`)
+- [x] Android safe area handling (status bar, notches, gesture nav)
 - [ ] Error messages and offline indicators
 - [ ] Test against Nextcloud, Radicale, Baikal
 - [ ] Android compatibility testing

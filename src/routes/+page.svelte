@@ -201,13 +201,13 @@
   }
 
   .top-app-bar-spacer {
-    height: 48px; /* Dense app bar height */
+    height: calc(48px + env(safe-area-inset-top, 0)); /* Dense app bar height + safe area */
     flex-shrink: 0;
   }
 
   :global(.mobile-app-bar) {
     position: fixed !important;
-    top: 0;
+    top: env(safe-area-inset-top, 0);
     left: 0;
     right: 0;
     z-index: var(--app-z-app-bar);

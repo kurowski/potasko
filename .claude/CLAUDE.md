@@ -30,6 +30,25 @@ Skipping step 2 creates "works on my machine" problems for other developers and 
 - CLI binary (`potasko`) shares core logic with Tauri
 - See `docs/PLAN.md` for current phase status
 
+## Android Safe Areas
+
+**When adding or modifying fixed/positioned UI elements, always account for safe areas.**
+
+Android devices (phones, tablets, desktop mode) may have notification bars, camera cutouts, or gesture navigation that can overlap UI elements. Use CSS environment variables:
+
+- `env(safe-area-inset-top, 0)` - status bar, camera cutouts
+- `env(safe-area-inset-bottom, 0)` - gesture navigation bar
+- `env(safe-area-inset-left, 0)` / `env(safe-area-inset-right, 0)` - side cutouts (landscape)
+
+Examples:
+- Fixed app bars: `top: env(safe-area-inset-top, 0)`
+- Fixed bottom FABs: `bottom: calc(24px + env(safe-area-inset-bottom, 0))`
+- Spacers below fixed headers: `height: calc(48px + env(safe-area-inset-top, 0))`
+
+These insets automatically return `0` when not needed (tablets without notches, windowed desktop mode), so they're safe to use universally.
+
+The `viewport-fit=cover` meta tag in `app.html` enables these insets. The 768px responsive breakpoint handles layout differences between phone-sized and tablet/desktop-sized screens.
+
 ## Distribution
 
 - Linux: Flatpak (for Flathub distribution)
