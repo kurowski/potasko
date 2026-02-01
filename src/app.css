@@ -2,6 +2,14 @@
 
 /* === CSS Custom Properties (Theme Variables) === */
 :root {
+  /* === MDC Theme Variables (must match SMUI theme) === */
+  --mdc-theme-primary: #3b82f6;
+  --mdc-theme-surface: #fff;
+  --mdc-theme-background: #f9fafb;
+  --mdc-theme-error: #dc2626;
+  --mdc-theme-on-surface: #000;
+  --mdc-theme-text-secondary-on-background: rgba(0, 0, 0, 0.6);
+
   /* === COLORS === */
 
   /* Priority badges */
@@ -68,6 +76,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    /* MDC Theme Variables (dark) */
+    --mdc-theme-primary: #60a5fa;
+    --mdc-theme-surface: #1f2937;
+    --mdc-theme-background: #111827;
+    --mdc-theme-error: #f87171;
+    --mdc-theme-on-surface: #fff;
+    --mdc-theme-text-secondary-on-background: rgba(255, 255, 255, 0.6);
+
     --app-color-priority-high-bg: #7f1d1d;
     --app-color-priority-high-text: #fecaca;
     --app-color-priority-medium-bg: #78350f;
