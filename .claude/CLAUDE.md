@@ -63,6 +63,8 @@ The `viewport-fit=cover` meta tag in `app.html` enables these insets. The 768px 
 3. `package.json`
 4. `src-tauri/Cargo.lock` (run `cargo check` in src-tauri to update, then commit)
 
-**Write release notes for every release.** After CI builds complete, update the release notes using `gh release edit`. Include:
+**Always draft release notes when preparing a release.** After tagging and pushing, update the release notes using `gh release edit`. Include:
 - Summary of user-facing changes
 - Link to full changelog (e.g., `https://github.com/kurowski/potasko/compare/v0.3.3...v0.3.4`)
+
+Do not wait for user to ask - draft and publish release notes as part of the release workflow.
