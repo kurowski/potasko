@@ -4,6 +4,8 @@
   import { accountStore } from '$lib/stores/accounts.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
   import DeleteListModal from './DeleteListModal.svelte';
+  import ListItemMenu from './ListItemMenu.svelte';
+  import { longpress } from '$lib/actions/longpress';
   import List, { Item, Text, Graphic, Separator, Subheader } from '@smui/list';
   import IconButton from '@smui/icon-button';
   import Textfield from '@smui/textfield';
@@ -55,6 +57,9 @@
 
   // Delete modal state
   let listToDelete = $state<TaskList | null>(null);
+
+  // Context menu state
+  let listItemMenu: ListItemMenu;
 
   // Group lists by account
   const groupedLists = $derived(() => {
@@ -127,8 +132,18 @@
     }
   }
 
-  function handleDeleteClick(list: TaskList, e: Event) {
+  function openListMenu(e: Event | CustomEvent, list: TaskList) {
+    e.preventDefault();
     e.stopPropagation();
+    const target = e.currentTarget as HTMLElement;
+    listItemMenu.openMenu(target, list);
+  }
+
+  function handleMenuEdit(list: TaskList) {
+    startEdit(list);
+  }
+
+  function handleMenuDelete(list: TaskList) {
     listToDelete = list;
   }
 </script>
@@ -246,26 +261,28 @@
             <Item
               activated={list.id === listStore.selectedListId}
               onclick={() => handleNavigation(() => listStore.select(list.id))}
+              use={[[longpress]]}
+              onlongpress={(e: CustomEvent) => openListMenu(e, list)}
+              oncontextmenu={(e: Event) => openListMenu(e, list)}
             >
               <Graphic>
-                <button
-                  type="button"
-                  class="list-color-btn"
+                <span
+                  class="list-color-indicator"
                   style:background-color={list.color ?? '#6b7280'}
-                  onclick={(e: Event) => { e.stopPropagation(); startEdit(list); }}
-                  title="Edit list"
-                ></button>
+                ></span>
               </Graphic>
               <Text>{list.name}</Text>
-              <span class="delete-wrapper" class:mobile={isMobile}>
-                <IconButton
-                  onclick={(e: Event) => handleDeleteClick(list, e)}
-                  title="Delete list"
-                  size="button"
-                >
-                  <span class="material-icons delete-icon">delete</span>
-                </IconButton>
-              </span>
+              {#if !isMobile}
+                <span class="overflow-wrapper">
+                  <IconButton
+                    onclick={(e: Event) => openListMenu(e, list)}
+                    title="More options"
+                    size="button"
+                  >
+                    <span class="material-icons overflow-icon">more_vert</span>
+                  </IconButton>
+                </span>
+              {/if}
             </Item>
           {/if}
         {/each}
@@ -305,26 +322,28 @@
             <Item
               activated={list.id === listStore.selectedListId}
               onclick={() => handleNavigation(() => listStore.select(list.id))}
+              use={[[longpress]]}
+              onlongpress={(e: CustomEvent) => openListMenu(e, list)}
+              oncontextmenu={(e: Event) => openListMenu(e, list)}
             >
               <Graphic>
-                <button
-                  type="button"
-                  class="list-color-btn"
+                <span
+                  class="list-color-indicator"
                   style:background-color={list.color ?? '#6b7280'}
-                  onclick={(e: Event) => { e.stopPropagation(); startEdit(list); }}
-                  title="Edit list"
-                ></button>
+                ></span>
               </Graphic>
               <Text>{list.name}</Text>
-              <span class="delete-wrapper" class:mobile={isMobile}>
-                <IconButton
-                  onclick={(e: Event) => handleDeleteClick(list, e)}
-                  title="Delete list"
-                  size="button"
-                >
-                  <span class="material-icons delete-icon">delete</span>
-                </IconButton>
-              </span>
+              {#if !isMobile}
+                <span class="overflow-wrapper">
+                  <IconButton
+                    onclick={(e: Event) => openListMenu(e, list)}
+                    title="More options"
+                    size="button"
+                  >
+                    <span class="material-icons overflow-icon">more_vert</span>
+                  </IconButton>
+                </span>
+              {/if}
             </Item>
           {/if}
         {/each}
@@ -360,6 +379,12 @@
 {#if listToDelete}
   <DeleteListModal list={listToDelete} onClose={() => listToDelete = null} />
 {/if}
+
+<ListItemMenu
+  bind:this={listItemMenu}
+  onEdit={handleMenuEdit}
+  onDelete={handleMenuDelete}
+/>
 
 <style>
   .sidebar {
@@ -469,40 +494,24 @@
     overflow-y: auto;
   }
 
-  .list-color-btn {
+  .list-color-indicator {
     width: 14px;
     height: 14px;
     border-radius: 3px;
     flex-shrink: 0;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    transition: transform var(--app-transition-fast);
   }
 
-  .list-color-btn:hover {
-    transform: scale(1.15);
-  }
-
-  .delete-wrapper {
+  .overflow-wrapper {
     opacity: 0;
     transition: opacity var(--app-transition-normal);
   }
 
-  :global(.mdc-deprecated-list-item:hover) .delete-wrapper {
+  :global(.mdc-deprecated-list-item:hover) .overflow-wrapper {
     opacity: 1;
   }
 
-  .delete-wrapper.mobile {
-    opacity: 1;
-  }
-
-  .delete-icon {
+  .overflow-icon {
     font-size: 18px;
-  }
-
-  :global(.delete-wrapper .mdc-icon-button:hover .delete-icon) {
-    color: var(--mdc-theme-error, #dc2626);
   }
 
   .error {
