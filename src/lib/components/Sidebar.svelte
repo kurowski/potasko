@@ -132,10 +132,10 @@
     }
   }
 
-  function openListMenu(e: Event | CustomEvent, list: TaskList) {
+  function openListMenu(e: Event | PointerEvent, list: TaskList) {
     e.preventDefault();
     e.stopPropagation();
-    const target = e.currentTarget as HTMLElement;
+    const target = (e.currentTarget ?? e.target) as HTMLElement;
     listItemMenu.openMenu(target, list);
   }
 
@@ -261,8 +261,7 @@
             <Item
               activated={list.id === listStore.selectedListId}
               onclick={() => handleNavigation(() => listStore.select(list.id))}
-              use={[[longpress]]}
-              onlongpress={(e: CustomEvent) => openListMenu(e, list)}
+              use={[[longpress, { onLongpress: (e: PointerEvent) => openListMenu(e, list) }]]}
               oncontextmenu={(e: Event) => openListMenu(e, list)}
             >
               <Graphic>
@@ -322,8 +321,7 @@
             <Item
               activated={list.id === listStore.selectedListId}
               onclick={() => handleNavigation(() => listStore.select(list.id))}
-              use={[[longpress]]}
-              onlongpress={(e: CustomEvent) => openListMenu(e, list)}
+              use={[[longpress, { onLongpress: (e: PointerEvent) => openListMenu(e, list) }]]}
               oncontextmenu={(e: Event) => openListMenu(e, list)}
             >
               <Graphic>
