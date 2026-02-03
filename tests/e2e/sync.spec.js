@@ -114,9 +114,9 @@ describe('CalDAV Sync via GUI', () => {
   });
 
   it('should create a task in synced list and verify eager sync', async () => {
-    // Find list items that have a color button (actual lists, not views/settings/subheaders)
-    // Lists have a .list-color-btn element that views don't have
-    const listColorBtns = await $$('.list-color-btn');
+    // Find list items that have a color indicator (actual lists, not views/settings/subheaders)
+    // Lists have a .list-color-indicator element that views don't have
+    const listColorBtns = await $$('.list-color-indicator');
     console.log('Found list color buttons:', listColorBtns.length);
 
     if (listColorBtns.length === 0) {
