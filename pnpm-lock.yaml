@@ -66,6 +66,9 @@ importers:
       '@smui/select':
         specifier: 8.0.3
         version: 8.0.3
+      '@smui/switch':
+        specifier: 8.0.3
+        version: 8.0.3
       '@smui/textfield':
         specifier: 8.0.3
         version: 8.0.3
@@ -708,6 +711,9 @@ packages:
   '@material/shape@14.0.0':
     resolution: {integrity: sha512-o0mJB0+feOv473KckI8gFnUo8IQAaEA6ynXzw3VIYFjPi48pJwrxa0mZcJP/OoTXrCbDzDeFJfDPXEmRioBb9A==}
 
+  '@material/switch@14.0.0':
+    resolution: {integrity: sha512-vHVKzbvHVKGSrkMB1lZAl8z3eJ8sPRnSR+DWn+IhqHcTsDdDyly2NNj4i2vTSrEA39CztGqkx0OnKM4vkpiZHw==}
+
   '@material/textfield@14.0.0':
     resolution: {integrity: sha512-HGbtAlvlIB2vWBq85yw5wQeeP3Kndl6Z0TJzQ6piVtcfdl2mPyWhuuVHQRRAOis3rCIaAAaxCQYYTJh8wIi0XQ==}
 
@@ -1008,6 +1014,9 @@ packages:
 
   '@smui/select@8.0.3':
     resolution: {integrity: sha512-McWnZM9QtjmvgvTytIpI1FOgHHb6JTQClWzj4XhfkPLC4ezzeGhF/jLdlNhn4GOjr6kWyEyVIE5JpcO7q4lIng==}
+
+  '@smui/switch@8.0.3':
+    resolution: {integrity: sha512-RF1syjqZg7T07hKHyDeyW6N5QTyhxTCeDKtGMogg1MB0bo7XAaZc1hcxjgAN64tHm3ZkTggI4YL5Kpw71/ke1Q==}
 
   '@smui/textfield@8.0.3':
     resolution: {integrity: sha512-YwimDSJi8TlQ+xlMgTa7ONnzlF/pKvrhie7B85Qr1RwRr2Zu8MtSjcDEHSyKFVaG9pLxsg4BfpTia/SV/LlieA==}
@@ -3471,6 +3480,22 @@ snapshots:
       '@material/theme': 14.0.0
       tslib: 2.8.1
 
+  '@material/switch@14.0.0':
+    dependencies:
+      '@material/animation': 14.0.0
+      '@material/base': 14.0.0
+      '@material/density': 14.0.0
+      '@material/dom': 14.0.0
+      '@material/elevation': 14.0.0
+      '@material/feature-targeting': 14.0.0
+      '@material/focus-ring': 14.0.0
+      '@material/ripple': 14.0.0
+      '@material/rtl': 14.0.0
+      '@material/shape': 14.0.0
+      '@material/theme': 14.0.0
+      '@material/tokens': 14.0.0
+      tslib: 2.8.1
+
   '@material/textfield@14.0.0':
     dependencies:
       '@material/animation': 14.0.0
@@ -3842,6 +3867,14 @@ snapshots:
       '@smui/menu': 8.0.3
       '@smui/menu-surface': 8.0.3
       '@smui/notched-outline': 8.0.3
+      '@smui/ripple': 8.0.3
+
+  '@smui/switch@8.0.3':
+    dependencies:
+      '@material/feature-targeting': 14.0.0
+      '@material/switch': 14.0.0
+      '@material/theme': 14.0.0
+      '@smui/common': 8.0.3
       '@smui/ripple': 8.0.3
 
   '@smui/textfield@8.0.3':

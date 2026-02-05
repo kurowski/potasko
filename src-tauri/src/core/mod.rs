@@ -6,6 +6,7 @@
 pub mod accounts;
 pub mod error;
 pub mod lists;
+pub mod preferences;
 pub mod tasks;
 
 pub use error::CoreError;

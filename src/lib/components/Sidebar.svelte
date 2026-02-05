@@ -3,6 +3,7 @@
   import { listStore } from '$lib/stores/lists.svelte';
   import { accountStore } from '$lib/stores/accounts.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
+  import { preferencesStore } from '$lib/stores/preferences.svelte';
   import DeleteListModal from './DeleteListModal.svelte';
   import ListItemMenu from './ListItemMenu.svelte';
   import { longpress } from '$lib/actions/longpress';
@@ -202,7 +203,9 @@
       />
       {#if accountStore.accounts.length > 0}
         <Select variant="outlined" bind:value={newListAccountId} label="Account" style="width: 100%;">
-          <Option value="">Local only</Option>
+          {#if preferencesStore.showLocalAccounts}
+            <Option value="">Local only</Option>
+          {/if}
           {#each accountStore.accounts as account (account.id)}
             <Option value={account.id}>{account.name}</Option>
           {/each}
@@ -229,7 +232,7 @@
 
   <div class="list-nav">
     <!-- Local lists section -->
-    {#if groupedLists().localLists.length > 0}
+    {#if preferencesStore.showLocalAccounts && groupedLists().localLists.length > 0}
       <Subheader>Local</Subheader>
       <List dense>
         {#each groupedLists().localLists as list (list.id)}

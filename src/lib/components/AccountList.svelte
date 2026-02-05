@@ -2,6 +2,7 @@
   import { accountStore } from '$lib/stores/accounts.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
   import { listStore } from '$lib/stores/lists.svelte';
+  import { preferencesStore } from '$lib/stores/preferences.svelte';
   import AccountForm from './AccountForm.svelte';
   import SyncLogModal from './SyncLogModal.svelte';
   import type { Account } from '$lib/types';
@@ -9,6 +10,7 @@
   import IconButton from '@smui/icon-button';
   import CircularProgress from '@smui/circular-progress';
   import Card from '@smui/card';
+  import Switch from '@smui/switch';
 
   // UI state
   let showAddForm = $state(false);
@@ -90,6 +92,17 @@
 </script>
 
 <div class="account-list">
+  <div class="preference-section">
+    <label class="preference-toggle">
+      <Switch
+        checked={preferencesStore.showLocalAccounts}
+        onclick={() => preferencesStore.setShowLocalAccounts(!preferencesStore.showLocalAccounts)}
+      />
+      <span class="preference-label">Show Local Accounts</span>
+    </label>
+    <p class="preference-hint">Hide local lists that aren't synced to CalDAV</p>
+  </div>
+
   <div class="header">
     <h2>CalDAV Accounts</h2>
     <Button variant="raised" onclick={handleAddClick}>
@@ -198,6 +211,30 @@
     display: flex;
     flex-direction: column;
     gap: var(--app-spacing-4);
+  }
+
+  .preference-section {
+    padding-bottom: var(--app-spacing-4);
+    border-bottom: 1px solid var(--app-color-border);
+    margin-bottom: var(--app-spacing-2);
+  }
+
+  .preference-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--app-spacing-3);
+    cursor: pointer;
+  }
+
+  .preference-label {
+    font-size: var(--app-font-size-base);
+    font-weight: 500;
+  }
+
+  .preference-hint {
+    margin: var(--app-spacing-1) 0 0;
+    font-size: var(--app-font-size-sm);
+    color: var(--mdc-theme-text-secondary-on-background, rgba(0, 0, 0, 0.6));
   }
 
   .header {

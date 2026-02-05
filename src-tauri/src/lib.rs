@@ -26,6 +26,8 @@ use commands::{
     get_tasks_today, get_tasks_overdue, get_task_count,
     // Sync commands
     sync_list, sync_account, initial_download, get_sync_status, get_sync_log_entries,
+    // Preference commands
+    get_show_local_accounts, set_show_local_accounts,
 };
 
 use sqlx::SqlitePool;
@@ -94,6 +96,9 @@ pub fn run() {
             initial_download,
             get_sync_status,
             get_sync_log_entries,
+            // Preference commands
+            get_show_local_accounts,
+            set_show_local_accounts,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

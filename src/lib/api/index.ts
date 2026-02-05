@@ -139,3 +139,13 @@ export async function getSyncStatus(listId: number): Promise<ListSyncStatus> {
 export async function getSyncLog(limit?: number, offset?: number): Promise<SyncLogEntry[]> {
   return invoke('get_sync_log_entries', { limit, offset });
 }
+
+// --- Preference commands ---
+
+export async function getShowLocalAccounts(): Promise<boolean> {
+  return invoke('get_show_local_accounts');
+}
+
+export async function setShowLocalAccounts(enabled: boolean): Promise<void> {
+  return invoke('set_show_local_accounts', { enabled });
+}

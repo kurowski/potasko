@@ -4,6 +4,7 @@
   import { listStore } from '$lib/stores/lists.svelte';
   import { taskStore } from '$lib/stores/tasks.svelte';
   import { syncStore } from '$lib/stores/sync.svelte';
+  import { preferencesStore } from '$lib/stores/preferences.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import TaskListView from '$lib/components/TaskListView.svelte';
   import TaskForm from '$lib/components/TaskForm.svelte';
@@ -53,9 +54,10 @@
     return list?.name ?? 'Tasks';
   });
 
-  // Load lists on mount
+  // Load lists and preferences on mount
   onMount(() => {
     listStore.load();
+    preferencesStore.load();
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
