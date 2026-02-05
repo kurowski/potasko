@@ -80,6 +80,15 @@
     return { localLists, accountLists };
   });
 
+  // Show section headings only when there are multiple sections
+  const showSectionHeadings = $derived(() => {
+    const grouped = groupedLists();
+    const hasLocalSection = preferencesStore.showLocalAccounts && grouped.localLists.length > 0;
+    const accountCount = grouped.accountLists.size;
+    const totalSections = (hasLocalSection ? 1 : 0) + accountCount;
+    return totalSections >= 2;
+  });
+
   // Get account name by ID
   function getAccountName(accountId: number): string {
     const account = accountStore.accounts.find(a => a.id === accountId);
@@ -233,7 +242,9 @@
   <div class="list-nav">
     <!-- Local lists section -->
     {#if preferencesStore.showLocalAccounts && groupedLists().localLists.length > 0}
-      <Subheader>Local</Subheader>
+      {#if showSectionHeadings()}
+        <Subheader>Local</Subheader>
+      {/if}
       <List dense>
         {#each groupedLists().localLists as list (list.id)}
           {#if editingList?.id === list.id}
@@ -293,7 +304,9 @@
 
     <!-- Account lists sections -->
     {#each [...groupedLists().accountLists.entries()] as [accountId, lists] (accountId)}
-      <Subheader>{getAccountName(accountId)}</Subheader>
+      {#if showSectionHeadings()}
+        <Subheader>{getAccountName(accountId)}</Subheader>
+      {/if}
       <List dense>
         {#each lists as list (list.id)}
           {#if editingList?.id === list.id}
