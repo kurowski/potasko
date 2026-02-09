@@ -65,5 +65,5 @@
   },
 
   "onCreateCommand": ".devcontainer/onCreate.sh",
-  "postStartCommand": ".devcontainer/onStart.sh"
+  "postStartCommand": ".devcontainer/postStart.sh"
 }
