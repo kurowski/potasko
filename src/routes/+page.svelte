@@ -286,6 +286,10 @@
   }
 
   /* Dialog content adjustments */
+  :global(.mdc-dialog--fullscreen .mdc-dialog__header) {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
   :global(.mdc-dialog .task-form) {
     padding: 0;
   }
