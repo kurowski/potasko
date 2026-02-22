@@ -2,7 +2,6 @@
   import type { Task } from '$lib/types';
   import { taskStore } from '$lib/stores/tasks.svelte';
   import Checkbox from '@smui/checkbox';
-  import IconButton from '@smui/icon-button';
 
   interface Props {
     task: Task;
@@ -13,12 +12,6 @@
 
   async function handleToggle() {
     await taskStore.toggle(task.id);
-  }
-
-  async function handleDelete() {
-    if (confirm(`Delete "${task.title}"?`)) {
-      await taskStore.remove(task.id);
-    }
   }
 
   function formatDueDate(dateStr: string | null): string {
@@ -91,11 +84,6 @@
     </div>
   </button>
 
-  <div class="delete-wrapper">
-    <IconButton onclick={handleDelete} title="Delete task">
-      <span class="material-icons">delete</span>
-    </IconButton>
-  </div>
 </div>
 
 <style>
@@ -193,24 +181,10 @@
     font-size: 14px;
   }
 
-  .delete-wrapper {
-    flex-shrink: 0;
-    opacity: 0;
-    transition: opacity var(--app-transition-normal);
-  }
-
-  .task-item:hover .delete-wrapper {
-    opacity: 1;
-  }
-
   /* Mobile touch target improvements */
   @media (max-width: 768px) {
     .task-item {
       padding: var(--app-spacing-1);
-    }
-
-    .delete-wrapper {
-      opacity: 1; /* Always visible on mobile */
     }
   }
   /* No dark mode block needed - CSS variables handle it */
