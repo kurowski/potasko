@@ -537,6 +537,7 @@
   .sidebar-footer {
     margin-top: auto;
     border-top: 1px solid var(--app-color-border);
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .sync-indicator {
