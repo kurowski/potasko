@@ -37,6 +37,7 @@
   let priority = $state<string>(untrack(() => task?.priority?.toString() ?? ""));
   let rrule = $state(untrack(() => task?.rrule ?? ""));
   let saving = $state(false);
+  let deleting = $state(false);
 
   const isEditing = $derived(task !== null);
 
@@ -81,6 +82,19 @@
       // Error handled by store
     } finally {
       saving = false;
+    }
+  }
+
+  async function handleDelete() {
+    if (!task || !confirm(`Delete "${task.title}"?`)) return;
+    deleting = true;
+    try {
+      await taskStore.remove(task.id);
+      onClose?.();
+    } catch {
+      // Error handled by store
+    } finally {
+      deleting = false;
     }
   }
 
@@ -165,13 +179,22 @@
 
   <div class="form-actions">
     {#if isEditing}
-      <Button variant="text" onclick={onClose} disabled={saving}>
-        Cancel
+      <Button variant="text" onclick={handleDelete} disabled={saving || deleting} class="delete-button">
+        {deleting ? "Deleting..." : "Delete"}
+      </Button>
+      <div class="form-actions-right">
+        <Button variant="text" onclick={onClose} disabled={saving || deleting}>
+          Cancel
+        </Button>
+        <Button variant="raised" type="submit" disabled={!title.trim() || saving || deleting}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    {:else}
+      <Button variant="raised" type="submit" disabled={!title.trim() || saving}>
+        {saving ? "Saving..." : "Add Task"}
       </Button>
     {/if}
-    <Button variant="raised" type="submit" disabled={!title.trim() || saving}>
-      {saving ? "Saving..." : isEditing ? "Save" : "Add Task"}
-    </Button>
   </div>
 </form>
 
@@ -222,9 +245,19 @@
 
   .form-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--app-spacing-2);
     padding-top: var(--app-spacing-2);
+  }
+
+  .form-actions-right {
+    display: flex;
+    gap: var(--app-spacing-2);
+  }
+
+  :global(.delete-button) {
+    color: var(--mdc-theme-error, #dc2626) !important;
   }
 
   /* Mobile adjustments */
